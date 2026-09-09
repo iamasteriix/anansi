@@ -1,6 +1,0 @@
-services:
-  base:
-    image: notebook
-    build:
-      context: .
-      target: development

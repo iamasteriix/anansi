@@ -1,8 +1,8 @@
 {
-  "name": "notebook",
+  "name": "anansi",
   "private": true,
   "workspaces": [
-    "apps/server",
-    "apps/web"
+    "apps/server-upload",
+    "apps/server-query"
   ]
 }
