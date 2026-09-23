@@ -1,0 +1,23 @@
+/consumer/verify:
+  get:
+    summary: Exchange a one-time token for a skbd token
+    tags:
+      - Examples
+    parameters:
+      - in: query
+        name: token
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skbd_token:
+                  type: string
+      '401':
+        description: Unauthorized
