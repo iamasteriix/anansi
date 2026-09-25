@@ -4,9 +4,11 @@
   "scripts": {
     "dev:server": "doppler run -- docker compose up -d server",
     "bash:server": "doppler run -- docker compose exec -it server bash",
-    "bash:pg": "doppler run -- docker compose exec -it postgres psql -U anansi -d anansidb"
+    "bash:pg": "doppler run -- docker compose exec -it postgres psql -U anansi -d anansidb",
+    "dev:web": "doppler run -- docker compose up -d web"
   },
   "workspaces": [
-    "apps/server"
+    "apps/server",
+    "apps/web"
   ]
 }

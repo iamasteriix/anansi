@@ -1,0 +1,6 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 100dvh;
+}
