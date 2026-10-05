@@ -1,0 +1,15 @@
+.image {
+  display: block;
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  object-position: center;
+}
+
+.image--resize-cover    { object-fit: cover; }
+.image--resize-contain  { object-fit: contain; }
+.image--resize-stretch  { object-fit: fill; }
+.image--resize-center   { object-fit: none; }
+
+.image--blur-low    { filter: blur(var(--optical-blurLow)); }
+.image--blur-medium { filter: blur(var(--optical-blurMedium)); }
+.image--blur-high   { filter: blur(var(--optical-blurDeep)); }

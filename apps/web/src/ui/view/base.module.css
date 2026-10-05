@@ -1,0 +1,46 @@
+/* Base */
+.view {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 0;
+  inline-size: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+  border-style: solid;
+  border-width: 0;
+  background-color: transparent;
+  color: inherit;
+}
+
+/* Fill */
+.view--fill-base     { background-color: var(--colors-bgBase); }
+.view--fill-surface  { background-color: var(--colors-bgSurface); }
+.view--fill-subtle   { background-color: var(--colors-bgSubtle); }
+.view--fill-raised   { background-color: var(--colors-bgRaised); }
+.view--fill-overlay  { background-color: var(--colors-bgOverlay); }
+.view--fill-floating { background-color: var(--colors-bgFloating); }
+
+/* Elevation */
+.view--elevation-base   { z-index: var(--elevation-levelBase); }
+.view--elevation-low    { z-index: var(--elevation-levelLow); }
+.view--elevation-raised { z-index: var(--elevation-levelRaised); }
+.view--elevation-medium { z-index: var(--elevation-levelMedium); }
+.view--elevation-high   { z-index: var(--elevation-levelHigh); }
+.view--elevation-max    { z-index: var(--elevation-levelMax); }
+
+/* Outline */
+.view--outline-primary    { border-width: var(--shape-strokeMedium); border-color: var(--colors-primary); }
+.view--outline-secondary  { border-width: var(--shape-strokeMedium); border-color: var(--colors-secondary); }
+.view--outline-accent     { border-width: var(--shape-strokeMedium); border-color: var(--colors-accent); }
+.view--outline-info       { border-width: var(--shape-strokeMedium); border-color: var(--colors-info); }
+.view--outline-success    { border-width: var(--shape-strokeMedium); border-color: var(--colors-success); }
+.view--outline-warning    { border-width: var(--shape-strokeMedium); border-color: var(--colors-warning); }
+.view--outline-error      { border-width: var(--shape-strokeMedium); border-color: var(--colors-error); }
+
+/* Shadow */
+.view--shadow-auto { box-shadow: var(--elevation-boxShadowMedium); }
+.view--shadow-none { box-shadow: none; }

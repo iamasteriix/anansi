@@ -1,23 +1,51 @@
 import type { PageLayoutViewProps } from './types';
 import { View } from '../view';
-import styles from './index.module.css';
+import { getContentOrdering } from './utils';
+import { PageLayoutHeader, PageLayoutFooter } from './slots';
+import styles from './style.module.css';
 
 
 export const PageLayoutView = ({
-  children, style, sx, a11y, testID, ref,
+  children, id, sx, style, a11y, testID, ref,
 }: PageLayoutViewProps) => {
+
+  const { header, footer, content, } = getContentOrdering(children);
+
   return (
-    <div className={ styles.page }>
+    <div className={ styles.container }>
       <View
+        id={ id }
         sx={ sx }
-        style={ style }
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minBlockSize: 0,
+          ...style,
+        }}
         a11y={ a11y }
-        data-component='page-layout-view'
         testID={ testID }
         ref={ ref }
       >
-        { children }
+        <div className={ styles.header }>
+          { header }
+        </div>
+        <View
+          sx={{
+            flex: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          { content }
+        </View>
+        <div className={ styles.footer }>
+          { footer }
+        </div>
       </View>
     </div>
   );
-}
+};
+
+PageLayoutView.Header = PageLayoutHeader;
+PageLayoutView.Footer = PageLayoutFooter;

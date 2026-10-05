@@ -1,0 +1,79 @@
+/* badge/style.module.css */
+.badge {
+  --badge-bg: transparent;
+  --badge-fg: var(--colors-textPrimary);
+  --badge-border: transparent;
+
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  gap: var(--spacing-gap2);
+  background-color: var(--badge-bg);
+  color: var(--badge-fg);
+  border: var(--shape-strokeMedium) solid var(--badge-border);
+  font-family: var(--typography-fontBody);
+  font-weight: var(--typography-weightMedium);
+  line-height: var(--typography-leadingCompact);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Sizes */
+.badge--size-sm { min-block-size: var(--spacing-space5); padding-inline: var(--spacing-space2); font-size: var(--typography-text2xs); border-radius: var(--shape-radiusSm); }
+.badge--size-md { min-block-size: var(--spacing-space6); padding-inline: var(--spacing-space3); font-size: var(--typography-textXs); border-radius: var(--shape-radiusMd); }
+.badge--size-lg { min-block-size: var(--spacing-space8); padding-inline: var(--spacing-space4); font-size: var(--typography-textSm); border-radius: var(--shape-radiusMd); }
+
+/* Radius overrides */
+.badge--radius-sm   { border-radius: var(--shape-radiusSm); }
+.badge--radius-md   { border-radius: var(--shape-radiusMd); }
+.badge--radius-lg   { border-radius: var(--shape-radiusLg); }
+.badge--radius-xl   { border-radius: var(--shape-radiusXl); }
+.badge--radius-2xl  { border-radius: var(--shape-radius2xl); }
+.badge--radius-full { border-radius: var(--shape-radiusFull); }
+
+/* Dot */
+.badge--dot {
+  inline-size: var(--spacing-space2);
+  block-size: var(--spacing-space2);
+  min-block-size: 0;
+  padding: 0;
+  gap: 0;
+}
+
+/* Filled */
+.badge--fill-filled.badge--intent-primary   { --badge-bg: var(--colors-primary);   --badge-fg: var(--colors-textInverse); }
+.badge--fill-filled.badge--intent-secondary { --badge-bg: var(--colors-secondary); --badge-fg: var(--colors-textInverse); }
+.badge--fill-filled.badge--intent-accent    { --badge-bg: var(--colors-accent);    --badge-fg: var(--colors-textInverse); }
+.badge--fill-filled.badge--intent-info      { --badge-bg: var(--colors-info);      --badge-fg: var(--colors-textInverse); }
+.badge--fill-filled.badge--intent-success   { --badge-bg: var(--colors-success);   --badge-fg: var(--colors-textInverse); }
+.badge--fill-filled.badge--intent-warning   { --badge-bg: var(--colors-warning);   --badge-fg: var(--colors-textInverse); }
+.badge--fill-filled.badge--intent-error     { --badge-bg: var(--colors-error);     --badge-fg: var(--colors-textInverse); }
+
+/* Tonal */
+.badge--fill-tonal.badge--intent-primary   { --badge-bg: rgb(from var(--colors-primary)   r g b / .15); --badge-fg: var(--colors-primary); }
+.badge--fill-tonal.badge--intent-secondary { --badge-bg: rgb(from var(--colors-secondary) r g b / .15); --badge-fg: var(--colors-textPrimary); }
+.badge--fill-tonal.badge--intent-accent    { --badge-bg: rgb(from var(--colors-accent)    r g b / .15); --badge-fg: var(--colors-accent); }
+.badge--fill-tonal.badge--intent-info      { --badge-bg: rgb(from var(--colors-info)      r g b / .15); --badge-fg: var(--colors-info); }
+.badge--fill-tonal.badge--intent-success   { --badge-bg: rgb(from var(--colors-success)   r g b / .15); --badge-fg: var(--colors-success); }
+.badge--fill-tonal.badge--intent-warning   { --badge-bg: rgb(from var(--colors-warning)   r g b / .15); --badge-fg: var(--colors-warning); }
+.badge--fill-tonal.badge--intent-error     { --badge-bg: rgb(from var(--colors-error)     r g b / .15); --badge-fg: var(--colors-error); }
+
+/* Outlined */
+.badge--fill-outlined.badge--intent-primary   { --badge-border: var(--colors-primary);      --badge-fg: var(--colors-primary); }
+.badge--fill-outlined.badge--intent-secondary { --badge-border: var(--colors-strokeDefault); --badge-fg: var(--colors-textPrimary); }
+.badge--fill-outlined.badge--intent-accent    { --badge-border: var(--colors-accent);       --badge-fg: var(--colors-accent); }
+.badge--fill-outlined.badge--intent-info      { --badge-border: var(--colors-info);         --badge-fg: var(--colors-info); }
+.badge--fill-outlined.badge--intent-success   { --badge-border: var(--colors-success);      --badge-fg: var(--colors-success); }
+.badge--fill-outlined.badge--intent-warning   { --badge-border: var(--colors-warning);      --badge-fg: var(--colors-warning); }
+.badge--fill-outlined.badge--intent-error     { --badge-border: var(--colors-error);        --badge-fg: var(--colors-error); }
+
+/* Ghost */
+.badge--fill-ghost.badge--intent-primary   { --badge-fg: var(--colors-primary); }
+.badge--fill-ghost.badge--intent-secondary { --badge-fg: var(--colors-textSecondary); }
+.badge--fill-ghost.badge--intent-accent    { --badge-fg: var(--colors-accent); }
+.badge--fill-ghost.badge--intent-info      { --badge-fg: var(--colors-info); }
+.badge--fill-ghost.badge--intent-success   { --badge-fg: var(--colors-success); }
+.badge--fill-ghost.badge--intent-warning   { --badge-fg: var(--colors-warning); }
+.badge--fill-ghost.badge--intent-error     { --badge-fg: var(--colors-error); }

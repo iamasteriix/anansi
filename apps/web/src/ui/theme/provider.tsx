@@ -4,17 +4,17 @@ import { storageAdapter, tokens, } from '../core';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ThemeContext } from './context';
 import { toCSSVariables } from './utils';
-import styles from './index.module.css';
+import styles from './style.module.css';
 
 
-const DEFAULT_THEMES: ThemesType = { moonsong: tokens, };
+const default_themes: ThemesType = { moonsong: tokens, };
 
 
 /**
  * Provides the resolved theme to all children via context and CSS variables
  */
 export const ThemeProvider = ({
-  themes = DEFAULT_THEMES,
+  themes = default_themes,
   persister = storageAdapter,
   children,
 }: ThemeProviderProps) => {

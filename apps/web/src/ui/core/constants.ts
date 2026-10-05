@@ -5,7 +5,7 @@ import type {
 import type { BreakpointType, Breakpoints } from './types';
 
 
-export const sxSpacingMap: Record<SxGap | SxSpace, string> = {
+export const sx_spacing: Record<SxGap | SxSpace, string> = {
   'gap-1':    'var(--spacing-gap1)',
   'gap-2':    'var(--spacing-gap2)',
   'gap-3':    'var(--spacing-gap3)',
@@ -40,7 +40,8 @@ export const sxSpacingMap: Record<SxGap | SxSpace, string> = {
   'space-36': 'var(--spacing-space36)',
 };
 
-export const sxFitMap: Record<SxFit, string> = {
+export const sx_fit: Record<SxFit, string> = {
+  content:  'fit-content',
   auto:     'auto',
   fill:     '100%',
   half:     '50%',
@@ -48,7 +49,7 @@ export const sxFitMap: Record<SxFit, string> = {
   quarter:  '25%',
 };
 
-export const sxLevelMap: Record<SxElevation, string> = {
+export const sx_level: Record<SxElevation, string> = {
   base:     'var(--elevation-levelBase)',
   low:      'var(--elevation-levelLow)',
   raised:   'var(--elevation-levelRaised)',
@@ -57,7 +58,7 @@ export const sxLevelMap: Record<SxElevation, string> = {
   max:      'var(--elevation-levelMax)',
 };
 
-export const sxRadiusMap: Record<SxRadius, string> = {
+export const sx_radius: Record<SxRadius, string> = {
   sm:     'var(--shape-radiusSm)',
   md:     'var(--shape-radiusMd)',
   lg:     'var(--shape-radiusLg)',
@@ -66,14 +67,14 @@ export const sxRadiusMap: Record<SxRadius, string> = {
   full:   'var(--shape-radiusFull)',
 };
 
-export const sxStrokeWeightMap: Record<SxStrokeWeight, string> = {
+export const sx_stroke_weight: Record<SxStrokeWeight, string> = {
   light:        'var(--shape-strokeLight)',
   medium:       'var(--shape-strokeMedium)',
   'semi-bold':  'var(--shape-strokeSemiBold)',
   bold:         'var(--shape-strokeBold)',
 };
 
-export const sxIntentMap: Record<SxIntent, string> = {
+export const sx_intent: Record<SxIntent, string> = {
   primary:    'var(--colors-primary)',
   secondary:  'var(--colors-secondary)',
   accent:     'var(--colors-accent)',
@@ -83,13 +84,13 @@ export const sxIntentMap: Record<SxIntent, string> = {
   error:      'var(--colors-error)',
 };
 
-export const sxStrokeColor: Record<SxStrokeColor, string> = {
+export const sx_stroke_color: Record<SxStrokeColor, string> = {
   subtle:   'var(--colors-strokeSubtle)',
   default:  'var(--colors-strokeDefault)',
   strong:   'var(--colors-strokeStrong)',
 };
 
-export const sxSurface: Record<SxSurface, string> = {
+export const sx_surface: Record<SxSurface, string> = {
   base:     'var(--colors-bgBase)',
   surface:  'var(--colors-bgSurface)',
   subtle:   'var(--colors-bgSubtle)',
@@ -98,7 +99,7 @@ export const sxSurface: Record<SxSurface, string> = {
   floating: 'var(--colors-bgFloating)',
 };
 
-export const sxShadow: Record<SxShadow, string> = {
+export const sx_shadow: Record<SxShadow, string> = {
   base:     'var(--elevation-boxShadowBase)',
   low:      'var(--elevation-boxShadowLow)',
   raised:   'var(--elevation-boxShadowRaised)',
@@ -107,14 +108,14 @@ export const sxShadow: Record<SxShadow, string> = {
   max:      'var(--elevation-boxShadowMax)',
 };
 
-export const sxFontSize: Record<SxFontSize, string> = {
+export const sx_font_size: Record<SxFontSize, string> = {
   '2xs':  'var(--typography-text2xs)',
-  'xs':   'var(--typography-textXs)',
-  'sm':   'var(--typography-textSm)',
-  'base': 'var(--typography-textBase)',
-  'md':   'var(--typography-textMd)',
-  'lg':   'var(--typography-textLg)',
-  'xl':   'var(--typography-textXl)',
+  xs:     'var(--typography-textXs)',
+  sm:     'var(--typography-textSm)',
+  base:   'var(--typography-textBase)',
+  md:     'var(--typography-textMd)',
+  lg:     'var(--typography-textLg)',
+  xl:     'var(--typography-textXl)',
   '2xl':  'var(--typography-text2xl)',
   '3xl':  'var(--typography-text3xl)',
   '4xl':  'var(--typography-text4xl)',
@@ -122,7 +123,7 @@ export const sxFontSize: Record<SxFontSize, string> = {
   '6xl':  'var(--typography-text6xl)',
 };
 
-export const sxLineHeight: Record<SxTracking, string> = {
+export const sx_line_height: Record<SxTracking, string> = {
   compact:  'var(--typography-leadingCompact)',
   tight:    'var(--typography-leadingTight)',
   snug:     'var(--typography-leadingSnug)',
@@ -131,7 +132,7 @@ export const sxLineHeight: Record<SxTracking, string> = {
   wide:     'var(--typography-leadingWide)',
 };
 
-export const sxLetterSpacing: Record<SxTracking, string> = {
+export const sx_letter_spacing: Record<SxTracking, string> = {
   compact:  'var(--typography-trackingCompact)',
   tight:    'var(--typography-trackingTight)',
   snug:     'var(--typography-trackingSnug)',
@@ -140,7 +141,7 @@ export const sxLetterSpacing: Record<SxTracking, string> = {
   wide:     'var(--typography-trackingWide)',
 };
 
-export const sxFontWeight: Record<SxFontWeight, string> = {
+export const sx_font_weight: Record<SxFontWeight, string> = {
   light:        'var(--typography-weightLight)',
   regular:      'var(--typography-weightRegular)',
   medium:       'var(--typography-weightMedium)',
@@ -148,13 +149,13 @@ export const sxFontWeight: Record<SxFontWeight, string> = {
   bold:         'var(--typography-weightBold)',
 };
 
-export const sxTypeface: Record<SxTypeface, string> = {
+export const sx_typeface: Record<SxTypeface, string> = {
   body:     'var(--typography-fontBody)',
   mono:     'var(--typography-fontMono)',
   headline: 'var(--typography-fontHeadline)',
 };
 
-export const sxColor: Record<SxColor, string> = {
+export const sx_color: Record<SxColor, string> = {
   primary:    'var(--colors-textPrimary)',
   secondary:  'var(--colors-textSecondary)',
   muted:      'var(--colors-textMuted)',
@@ -168,7 +169,7 @@ export const sxColor: Record<SxColor, string> = {
 
 
 // ======================================================================================
-export const defaultBreakpoints: Breakpoints = {
+export const default_breakpoints: Breakpoints = {
   compact: 480,
   small: 640,
   regular: 768,
@@ -178,4 +179,4 @@ export const defaultBreakpoints: Breakpoints = {
   cinema: 1920,
 };
 
-export const breakpointList: BreakpointType[] = ['cinema', 'compact', 'extended', 'large', 'small', 'regular', 'ultra'];
+export const breakpoint_list: BreakpointType[] = ['cinema', 'compact', 'extended', 'large', 'small', 'regular', 'ultra'];

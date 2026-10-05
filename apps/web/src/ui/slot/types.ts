@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { SxProps } from '../core';
-import type { ViewProps } from '../view/types';
+import type { LayoutProps } from '../types';
 
 
 export type SlotParams <T = {}> = {
@@ -11,6 +11,6 @@ export type SlotParams <T = {}> = {
   extraProps?: T;                         // props the slot accepts beyond the base
 };
 
-export type SlotProps = ViewProps & {
+export type SlotProps = LayoutProps & {
   position?: 'leading' | 'trailing';  // maps to order: -1 or 1
 };

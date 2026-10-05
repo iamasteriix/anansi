@@ -1,19 +1,24 @@
-import type { ViewVariant } from '../view/types';
+import type { CSSProperties } from 'react';
+import type { ButtonVariant, GlassButtonVariant } from '../button/types';
+import type { GlassViewVariant, ViewVariant } from '../view/types';
+import type { ToolbarVariant } from '../toolbar/types';
+import type { GlassTextFieldVariant, TextFieldVariant } from '../text-field/types';
 import { tokens } from './tokens';
 
 
+// THEME: Media queries =================================================================
 export type BreakpointType = 'compact' | 'small' | 'regular' | 'large' | 'extended' | 'ultra' | 'cinema';
 export type Breakpoints = Record<BreakpointType, number>;
 export type BreakpointOptions <T> = Partial<Record<BreakpointType, T>>;
 export type ResponsiveProp <T = string | number> = T | T[] | BreakpointOptions<T>;
-// ======================================================================================
-
-
-// ======================================================================================
 export type MediaQueryHook = {
-  breakpoint: BreakpointType;
+  cssProperties: CSSProperties;
+  breakpoint: BreakpointType | undefined;
 };
+// ======================================================================================
 
+
+// THEME: Tokens ========================================================================
 // `tokens` is declared `as const` to narrow its allowed values and provides
 // autocomplete. However, this forces its inferred types to be the properties'
 // literal values, not `string`, which is what we want.
@@ -27,7 +32,7 @@ export type ThemeTokensType = {
 // ======================================================================================
 
 
-// ======================================================================================
+// THEME: Styles ========================================================================
 export type StyleValue = string | number | undefined;
 export type SxDisplay = 'flex' | 'none';
 export type SxFlex = 'auto' | 'none';
@@ -43,7 +48,7 @@ export type SxSpace =
   | 'space-5' | 'space-6' | 'space-8' | 'space-10'
   | 'space-12' | 'space-16' | 'space-18' | 'space-20'
   | 'space-24' | 'space-28' | 'space-32' | 'space-36';
-export type SxFit = 'auto' | 'fill' | 'half' | 'third' | 'quarter';
+export type SxFit = 'auto' | 'content' | 'fill' | 'half' | 'third' | 'quarter';
 export type SxGap =
   | 'gap-1' | 'gap-2' | 'gap-3' | 'gap-4'
   | 'gap-5' | 'gap-6' | 'gap-8' | 'gap-10'
@@ -120,10 +125,30 @@ export type SxProps = {
   lineHeight?: ResponsiveProp<SxTracking>;
   letterSpacing?: ResponsiveProp<SxTracking>;
 };
+
+
+// THEME: Variants ======================================================================
+export interface ViewVariantExt {};
+export interface GlassViewVariantExt {};
+export interface ButtonVariantExt {};
+export interface GlassButtonVariantExt {};
+export interface ToolbarVariantExt {};
+export interface TextFieldVariantExt {};
+export interface GlassTextFieldVariantExt {};
+
+export interface VariantRegistry {
+  view: ViewVariant | ViewVariantExt;
+  glassView: GlassViewVariant | GlassViewVariantExt;
+  button: ButtonVariant | ButtonVariantExt;
+  glassButton: GlassButtonVariant | GlassButtonVariantExt;
+  toolbar: ToolbarVariant | ToolbarVariantExt;
+  textField: TextFieldVariant | TextFieldVariant;
+  glassTextField: GlassTextFieldVariant | GlassTextFieldVariantExt;
+};
 // ======================================================================================
 
 
-// ======================================================================================
+// ACCESSIBILITY ========================================================================
 type A11yState = {
   disabled?: boolean;
   selected?: boolean;
@@ -132,19 +157,73 @@ type A11yState = {
   expanded?: boolean;
 };
 
+type A11yValue =
+  | {
+      now: number;
+      min: number;
+      max: number;
+      text?: string;
+    }
+  | {
+      now?: never;
+      min?: number;
+      max?: number;
+      text?: string;
+    };
+
 export type A11yProps = {
   label?: string;
   role?: string;
   hint?: string;
   state?: A11yState;
+  value?: A11yValue;
   hidden?: boolean;
 };
 // ======================================================================================
 
 
-// ======================================================================================
-export interface ViewVariantExt {};
-
-export interface VariantRegistry {
-  view: ViewVariant | ViewVariantExt;
+// STORAGE ==============================================================================
+export type StorageTopics = {
+  theme: Record<string, ThemeTokensType>,
+  activeTheme: string;
 };
+
+
+export type StorageAdapter = {
+  get: <T> (key: string) => T | null | Promise<T | null>;
+
+  set <T> (
+    key: string,
+    value: T
+  ): void | Promise<void>;
+
+  remove (key: string): void | Promise<void>,
+};
+// ======================================================================================
+
+
+// OFFICIAL =============================================================================
+export type TargetEvent = { target: number | null | undefined; };
+
+export type LayoutEvent = {
+  layout: {
+    width: number,
+    height: number,
+    x: number,
+    y: number,
+  },
+  target: number | null | undefined,
+};
+
+export type PressEvent = {
+  changedTouches: PressEvent[],
+  identifier: number,
+  locationX: number,
+  locationY: number,
+  pageX: number,
+  pageY: number,
+  target: number | null | undefined,
+  timestamp: number,
+  touches: PressEvent[]
+};
+// ======================================================================================

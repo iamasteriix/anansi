@@ -1,0 +1,19 @@
+/* Base */
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding-inline-start: env(safe-area-inset-left, 0);
+  padding-inline-end: env(safe-area-inset-right, 0);
+  overflow: hidden;
+}
+
+.header {
+  padding-block-start: env(safe-area-inset-top, 0);
+  flex-shrink: 0;
+}
+
+.footer {
+  padding-block-end: env(safe-area-inset-bottom, 0);
+  flex-shrink: 0;
+}

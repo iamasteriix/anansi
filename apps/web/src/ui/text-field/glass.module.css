@@ -1,0 +1,56 @@
+/* Glass Layout Wrapper */
+.glass-text-field {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  border-style: solid;
+  border-width: var(--shape-strokeMedium);
+  border-color: var(--colors-strokeSubtle);
+  color: var(--colors-textPrimary);
+  transition: background-color var(--motion-durationBase) ease,
+              border-color var(--motion-durationBase) ease;
+}
+
+/* Glass Tones & Intensities */
+.glass-text-field--tone-neutral.glass-text-field--intensity-faint { background-color: rgba(255, 255, 255, 0.03); }
+.glass-text-field--tone-neutral.glass-text-field--intensity-subtle { background-color: rgba(255, 255, 255, 0.06); }
+.glass-text-field--tone-neutral.glass-text-field--intensity-base { background-color: rgba(255, 255, 255, 0.1); }
+.glass-text-field--tone-neutral.glass-text-field--intensity-strong { background-color: rgba(255, 255, 255, 0.18); }
+
+.glass-text-field--tone-accent.glass-text-field--intensity-faint { background-color: rgba(48, 219, 18, 0.05); }
+.glass-text-field--tone-accent.glass-text-field--intensity-subtle { background-color: rgba(48, 219, 18, 0.12); }
+.glass-text-field--tone-accent.glass-text-field--intensity-base { background-color: rgba(48, 219, 18, 0.22); }
+.glass-text-field--tone-accent.glass-text-field--intensity-strong { background-color: rgba(48, 219, 18, 0.35); }
+
+/* Blurs */
+.glass-text-field--blur-sm { backdrop-filter: blur(var(--optical-blurLow)); }
+.glass-text-field--blur-md { backdrop-filter: blur(var(--optical-blurMedium)); }
+.glass-text-field--blur-lg { backdrop-filter: blur(var(--optical-blurDeep)); }
+
+/* Sizes */
+.glass-text-field--size-sm {
+  font-size: var(--typography-textSm);
+  gap: var(--spacing-space2);
+}
+
+.glass-text-field--size-md {
+  padding: var(--spacing-space1) var(--spacing-space2);
+  font-size: var(--typography-textBase);
+  gap: var(--spacing-space3);
+}
+
+.glass-text-field--size-lg {
+  padding: var(--spacing-space4) var(--spacing-space5);
+  font-size: var(--typography-textBase);
+  gap: var(--spacing-space4);
+}
+
+/* Radius forwarding */
+.glass-text-field--radius-sm { border-radius: var(--shape-radiusSm); }
+.glass-text-field--radius-md { border-radius: var(--shape-radiusMd); }
+.glass-text-field--radius-lg { border-radius: var(--shape-radiusLg); }
+.glass-text-field--radius-xl { border-radius: var(--shape-radiusXl); }
+.glass-text-field--radius-2xl { border-radius: var(--shape-radius2xl); }
+.glass-text-field--radius-full { border-radius: var(--shape-radiusFull); }

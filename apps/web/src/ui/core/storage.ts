@@ -1,4 +1,4 @@
-import type { StorageAdapter, StorageTopics, } from '../types';
+import type { StorageAdapter, StorageTopics, } from './types';
 
 
 export const storageAdapter = (topic: keyof StorageTopics): StorageAdapter => ({

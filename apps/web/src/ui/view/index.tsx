@@ -1,24 +1,22 @@
-import type { ViewProps, } from './types';
-import { resolveA11y, resolveSx, useMediaQuery } from '../core';
-import { resolveViewClasses } from './utils';
+import type { GlassViewProps, ViewProps, } from './types';
+import { resolveA11y, useMediaQuery } from '../core';
+import { resolveBaseVariants, resolveGlassVariants, } from './utils';
 
 
-export const View = ({
-  sx, a11y, style, children, variant, testID, ref,
-  'data-component': dataComponent = 'view',
-}: ViewProps) => {
-  const { breakpoint, } = useMediaQuery();
-
-  const className = resolveViewClasses(variant);    // build class name from variant features
-  const sxStyles = resolveSx(sx, breakpoint);       // resolve sx into inline styles
-  const styleObj = Object.assign(sxStyles, style);  // merge style properties
-  const accessibility = resolveA11y(a11y);          // resolve accessibility props
+const ViewBase = ({
+  children, id, sx, a11y, style, testID, ref,
+  className,  // build class name from variant features
+}: Omit<ViewProps, 'variant'> & {
+  className: string;
+}) => {
+  const { cssProperties, } = useMediaQuery(sx, style);  // resolve styling at media query level
+  const accessibility = resolveA11y(a11y);              // resolve accessibility props
 
   return (
     <div
       className={ className }
-      style={ styleObj }
-      data-component={ dataComponent }
+      style={ cssProperties }
+      id={ id }
       data-testid={ testID }
       ref={ ref }
       { ...accessibility }
@@ -27,3 +25,19 @@ export const View = ({
     </div>
   );
 }
+
+
+export const View = ({ variant, ...rest }: ViewProps) => (
+  <ViewBase
+    { ...rest }
+    className={ resolveBaseVariants(variant) }
+  />
+);
+
+
+export const GlassView = ({ variant, ...rest }: GlassViewProps) => (
+  <ViewBase
+    { ...rest }
+    className={ resolveGlassVariants(variant) }
+  />
+);

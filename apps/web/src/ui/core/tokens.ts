@@ -68,7 +68,7 @@ const spacingTokens = {
   gap3:   '.75px',
   gap4:   '1px',
   gap5:   '1.25px',
-  gap6:   '1.5',
+  gap6:   '1.5px',
   gap8:   '2px',
   gap10:  '2.5px',
   gap12:  '3px',

@@ -1,32 +1,52 @@
+import type { SxProps } from '../core';
 import type { SlotParams, SlotProps, } from './types';
+import { useMemo } from 'react';
 import { View } from '../view';
+
+
+const default_sx: SxProps = {
+  width: 'fill',
+  height: 'fill',
+};
 
 
 export const createSlot = <T extends Record<string, any> = {}> ({
   displayName = 'Slot',
-  defaultSx = {},
+  defaultSx = default_sx,
   defaultStyle = {},
+  useContext: useSlotContext = () => ({}),
   extraProps,
-}: SlotParams) => {
+}: SlotParams<T>) => {
 
   const SlotComponent = ({
-    position,
-    sx,
-    style,
-    children,
+    children, id, sx, style, position,
     ...rest
   }: SlotProps & T) => {
+    const contextProps = useSlotContext ? useSlotContext() : {};
+    const mergedSx = useMemo<SxProps>(() => {
+      const order = position === 'leading' ? -1 : position === 'trailing' ? 1 : undefined;
+      return ({
+        ...defaultSx,
+        ...(order !== undefined && { order }),
+        ...sx,
+      });
+    }, [sx, position]);
+    const mergedStyle = useMemo(() => ({ ...defaultStyle, ...style, }), [style]);
 
-    const order = position === 'leading' ? -1 : position === 'trailing' ? 1 : undefined;
-    const mergedSx = { order, ...defaultSx, ...sx, };
-    const mergedStyle = { ...defaultStyle, ...style, };
+    // drop `undefined`s from `rest` so they delete stuff
+    const definedRest = Object.fromEntries(
+      Object.entries(rest)
+        .filter(([, value]) => value != undefined)
+    );
 
     return (
       <View
+        { ...extraProps }
+        { ...contextProps }
+        { ...definedRest }
         sx={ mergedSx }
         style={ mergedStyle }
-        { ...rest }
-        { ...extraProps }
+        id={ id }
       >
         { children }
       </View>

@@ -1,15 +1,19 @@
 import type { AppLayoutViewProps } from './types';
 import { ThemeProvider } from '../theme';
-import styles from './index.module.css';
+import styles from './style.module.css';
 import '@/assets/styles/fonts.css';
-import './index.css';
+import './style.css';
 
 
 export const AppLayoutView = ({
-  children,
+  children, id, testID,
 }: AppLayoutViewProps) => {
   return (
-    <div className={ styles.app }>
+    <div
+      id={ id }
+      className={ styles.app }
+      data-testid={ testID }
+    >
       <ThemeProvider>
         { children }
       </ThemeProvider>

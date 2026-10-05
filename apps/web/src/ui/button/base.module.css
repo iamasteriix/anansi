@@ -1,0 +1,129 @@
+.button {
+  --btn-bg: transparent;
+  --btn-fg: var(--colors-textPrimary);
+  --btn-border: transparent;
+
+  display: inline-flex;
+  position: relative;
+  box-sizing: border-box;
+  background-color: var(--btn-bg);
+  color: var(--btn-fg);
+  border-style: solid;
+  border-width: 0;
+  border-color: var(--btn-border);
+  font-family: var(--typography-fontBody);
+  font-weight: var(--typography-weightMedium);
+  line-height: var(--typography-leadingCompact);
+  transition: filter 120ms ease, opacity 120ms ease;
+}
+
+/* Expand Pressable's div edge-to-edge inside the outer container */
+.button > div {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Hover, active, disabled states targeting aria-disabled */
+.button:not(:has([aria-disabled='true'])):hover  { filter: brightness(1.12); }
+.button:not(:has([aria-disabled='true'])):active { filter: brightness(.9); }
+.button:has([aria-disabled='true'])             { opacity: .4; }
+
+/* Outer wrapper handles focus ring delegation */
+.button:focus-within {
+  outline: 1px solid var(--colors-info);
+  outline-offset: 1px;
+}
+
+/* Filled */
+.button--fill-filled.button--intent-primary   { --btn-bg: var(--colors-primary);   --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-secondary { --btn-bg: var(--colors-secondary); --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-accent    { --btn-bg: var(--colors-accent);    --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-info      { --btn-bg: var(--colors-info);      --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-success   { --btn-bg: var(--colors-success);   --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-warning   { --btn-bg: var(--colors-warning);   --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-error     { --btn-bg: var(--colors-error);     --btn-fg: var(--colors-textInverse); }
+
+/* Tonal */
+.button--fill-tonal.button--intent-primary   { --btn-bg: rgb(from var(--colors-primary)   r g b / .15); --btn-fg: var(--colors-primary); }
+.button--fill-tonal.button--intent-secondary { --btn-bg: rgb(from var(--colors-secondary) r g b / .15); --btn-fg: var(--colors-textPrimary); }
+.button--fill-tonal.button--intent-accent    { --btn-bg: rgb(from var(--colors-accent)    r g b / .15); --btn-fg: var(--colors-accent); }
+.button--fill-tonal.button--intent-info      { --btn-bg: rgb(from var(--colors-info)      r g b / .15); --btn-fg: var(--colors-info); }
+.button--fill-tonal.button--intent-success   { --btn-bg: rgb(from var(--colors-success)   r g b / .15); --btn-fg: var(--colors-success); }
+.button--fill-tonal.button--intent-warning   { --btn-bg: rgb(from var(--colors-warning)   r g b / .15); --btn-fg: var(--colors-warning); }
+.button--fill-tonal.button--intent-error     { --btn-bg: rgb(from var(--colors-error)     r g b / .15); --btn-fg: var(--colors-error); }
+
+/* Outlined */
+.button--fill-outlined.button--intent-primary   { border-width: 1px; --btn-border: var(--colors-primary);        --btn-fg: var(--colors-primary); }
+.button--fill-outlined.button--intent-secondary { border-width: 1px; --btn-border: var(--colors-strokeDefault);  --btn-fg: var(--colors-textPrimary); }
+.button--fill-outlined.button--intent-accent    { border-width: 1px; --btn-border: var(--colors-accent);         --btn-fg: var(--colors-accent); }
+.button--fill-outlined.button--intent-info      { border-width: 1px; --btn-border: var(--colors-info);           --btn-fg: var(--colors-info); }
+.button--fill-outlined.button--intent-success   { border-width: 1px; --btn-border: var(--colors-success);        --btn-fg: var(--colors-success); }
+.button--fill-outlined.button--intent-warning   { border-width: 1px; --btn-border: var(--colors-warning);        --btn-fg: var(--colors-warning); }
+.button--fill-outlined.button--intent-error     { border-width: 1px; --btn-border: var(--colors-error);          --btn-fg: var(--colors-error); }
+
+/* Ghost */
+.button--fill-ghost.button--intent-primary   { --btn-fg: var(--colors-primary); }
+.button--fill-ghost.button--intent-secondary { --btn-fg: var(--colors-textSecondary); }
+.button--fill-ghost.button--intent-accent    { --btn-fg: var(--colors-accent); }
+.button--fill-ghost.button--intent-info      { --btn-fg: var(--colors-info); }
+.button--fill-ghost.button--intent-success   { --btn-fg: var(--colors-success); }
+.button--fill-ghost.button--intent-warning   { --btn-fg: var(--colors-warning); }
+.button--fill-ghost.button--intent-error     { --btn-fg: var(--colors-error); }
+
+/* Fit */
+.button--fit-auto     { width: var(--fit-auto); }
+.button--fit-content  { width: var(--fit-content); }
+.button--fit-quarter  { width: var(--fit-quarter); }
+.button--fit-third    { width: var(--fit-third); }
+.button--fit-half     { width: var(--fit-half); }
+.button--fit-fill     { width: var(--fit-full); }
+
+/* Sizes (Padding applied directly to Pressable's div surface) */
+.button--size-sm > div { padding-inline: var(--spacing-space1); padding-block: var(--spacing-space1); font-size: var(--typography-textSm); gap: var(--spacing-gap2); }
+.button--size-md > div { padding-inline: var(--spacing-space2); padding-block: var(--spacing-space2); font-size: var(--typography-textBase); gap: var(--spacing-gap2); }
+.button--size-lg > div { padding-inline: var(--spacing-space6); padding-block: var(--spacing-space6); font-size: var(--typography-textMd); gap: var(--spacing-gap2); }
+
+/* Elevation */
+.button--elevation-base   { box-shadow: var(--elevation-boxShadowBase); }
+.button--elevation-low    { box-shadow: var(--elevation-boxShadowLow); }
+.button--elevation-raised { box-shadow: var(--elevation-boxShadowRaised); }
+.button--elevation-medium { box-shadow: var(--elevation-boxShadowMedium); }
+.button--elevation-high   { box-shadow: var(--elevation-boxShadowHigh); }
+.button--elevation-max    { box-shadow: var(--elevation-boxShadowMax); }
+
+/* Radius */
+.button--radius-sm   { border-radius: var(--shape-radiusSm); }
+.button--radius-md   { border-radius: var(--shape-radiusMd); }
+.button--radius-lg   { border-radius: var(--shape-radiusLg); }
+.button--radius-xl   { border-radius: var(--shape-radiusXl); }
+.button--radius-2xl  { border-radius: var(--shape-radius2xl); }
+.button--radius-full { border-radius: var(--shape-radiusFull); }
+
+/* Justify */
+.button--justify-start          .button__content { justify-content: flex-start; }
+.button--justify-center         .button__content { justify-content: center; }
+.button--justify-end            .button__content { justify-content: flex-end; }
+.button--justify-space-between  .button__content { justify-content: space-between; }
+.button--justify-space-around   .button__content { justify-content: space-around; }
+.button--justify-stretch        .button__content { justify-content: stretch; }
+
+/* Slots */
+.button__slot {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Content */
+.button__content {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
