@@ -1,13 +1,13 @@
 import type { ImageEvent, ImageProps } from './types';
 import { useCallback, useEffect, useRef, } from 'react';
-import { resolveA11y, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import { resolveVariants } from './utils';
 
 
 export const Image = ({
   variant, src, alt, crossOrigin, referrerPolicy,
   onError, onLoad, onLoadStart, onLoadEnd, onLayout,
-  id, sx, style, a11y, testID, ref,
+  id, theme, style, a11y, testID, ref,
 }: ImageProps) => {
 
   const internalRef = useRef<HTMLImageElement | null>(null);
@@ -66,7 +66,7 @@ export const Image = ({
     }
   }, [onLayout]);
 
-  const { cssProperties } = useMediaQuery(sx, style);
+  const { cssProperties } = useMediaQuery(theme, style);
   const className = resolveVariants(variant);
   const accessibility = resolveA11y(a11y);
 

@@ -43,19 +43,19 @@
 /* Sizes */
 .text-field--size-sm {
   font-size: var(--typography-textSm);
-  gap: var(--spacing-space2);
+  gap: var(--size-relative2);
 }
 
 .text-field--size-md {
-  padding: var(--spacing-space2) var(--spacing-space3);
+  padding: var(--size-relative2) var(--size-relative3);
   font-size: var(--typography-textBase);
-  gap: var(--spacing-space3);
+  gap: var(--size-relative3);
 }
 
 .text-field--size-lg {
-  padding: var(--spacing-space4) var(--spacing-space5);
+  padding: var(--size-relative4) var(--size-relative5);
   font-size: var(--typography-textBase);
-  gap: var(--spacing-space4);
+  gap: var(--size-relative4);
 }
 
 /* Fills */

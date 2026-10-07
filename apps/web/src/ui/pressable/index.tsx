@@ -1,13 +1,13 @@
 import type { KeyboardEvent, PointerEvent, SyntheticEvent } from 'react';
 import type { PressableProps, PressableState } from './types';
 import { useCallback, useRef, useState, } from 'react';
-import { resolveA11y, resolveSx, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import styles from './style.module.css';
 
 
 export const Pressable = ({
   onPress, onPressIn, onPressOut, onLongPress, onPressMove, onHoverIn, onHoverOut,
-  children, id, style, sx, a11y, testID, ref,
+  children, id, style, theme, a11y, testID, ref,
   delayLongPress = 500,
   disabled = false, 
 }: PressableProps) => {
@@ -120,9 +120,7 @@ export const Pressable = ({
   const state: PressableState = { pressed, };
   const content = typeof children === 'function' ? children(state) : children;
 
-  const { breakpoint } = useMediaQuery();
-  const sxStyles = resolveSx(sx, breakpoint);
-  const styleObj = Object.assign(sxStyles, style);
+  const { cssProperties } = useMediaQuery(theme, style);
   const accessibility = resolveA11y({
     role: 'button',
     ...a11y,
@@ -132,7 +130,7 @@ export const Pressable = ({
   return (
     <div
       className={ styles.pressable }
-      style={ styleObj }
+      style={ cssProperties }
       onPointerDown={ handlePointerDown }
       onPointerUp={ handlePointerUp }
       onPointerEnter={ handlePointerEnter }

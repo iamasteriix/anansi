@@ -1,19 +1,19 @@
 import type { Ref } from 'react';
 import type { LayoutProps } from '../types';
-import type { SxElevation, SxIntent, SxSurface, } from '../core';
+import type { TsElevation, TsIntent, TsSurface, } from '../@core';
 
 
 export type ViewVariant = {
-  fill?: SxSurface;
-  elevation?: SxElevation;
-  outline?: SxIntent;
+  fill?: TsSurface;
+  elevation?: TsElevation;
+  outline?: TsIntent;
   shadow?: 'auto' | 'none';
 };
 
 export type GlassViewVariant = {
   tone?: 'neutral' | 'accent';
   intensity?: 'faint' | 'subtle' | 'base' | 'strong';
-  elevation?: SxElevation;
+  elevation?: TsElevation;
   blur?: 'sm' | 'md' | 'lg';
 };
 
@@ -22,7 +22,6 @@ export type ViewProps = LayoutProps & {
   ref?: Ref<HTMLDivElement>;
 };
 
-export type GlassViewProps = LayoutProps & {
+export type GlassViewProps = Omit<ViewProps, 'variant'> & {
   variant?: GlassViewVariant;
-  ref?: Ref<HTMLDivElement>;
 };

@@ -1,14 +1,14 @@
 import type { BadgeProps } from './types';
-import { resolveA11y, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import { getContentOrdering, resolveVariants } from './utils';
 import { BadgeIcon } from './slots';
 
 
 export const Badge = ({
-  children, id, sx, a11y, style, variant, testID, ref,
+  children, id, theme, a11y, style, variant, testID, ref,
 }: BadgeProps) => {
 
-  const { cssProperties, } = useMediaQuery(sx, style);
+  const { cssProperties, } = useMediaQuery(theme, style);
   const className = resolveVariants(variant);
   const accessibility = resolveA11y(a11y);
 

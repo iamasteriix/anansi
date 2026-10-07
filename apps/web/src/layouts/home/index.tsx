@@ -1,8 +1,8 @@
 import {
   Button, GlassButton, GlassTextField, Image, PageLayoutView, Pressable, Toolbar, View,
 } from '@/ui';
-import { SxStyles } from '@/ui/core';
-import { Ellipsis, Plus, Search, } from '@/ui/icons';
+import { SxStyles } from '@/ui/@core';
+import { Ellipsis, Plus, Search, } from '@/ui/@icons';
 import images from '@/assets/images';
 
 
@@ -102,6 +102,7 @@ const sxStyles = SxStyles.create({
     width: {
       regular: 'auto',
       large: 'half',
+      extended: 'third',
     },
   },
 });

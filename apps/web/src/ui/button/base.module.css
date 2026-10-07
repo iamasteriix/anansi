@@ -84,9 +84,9 @@
 .button--fit-fill     { width: var(--fit-full); }
 
 /* Sizes (Padding applied directly to Pressable's div surface) */
-.button--size-sm > div { padding-inline: var(--spacing-space1); padding-block: var(--spacing-space1); font-size: var(--typography-textSm); gap: var(--spacing-gap2); }
-.button--size-md > div { padding-inline: var(--spacing-space2); padding-block: var(--spacing-space2); font-size: var(--typography-textBase); gap: var(--spacing-gap2); }
-.button--size-lg > div { padding-inline: var(--spacing-space6); padding-block: var(--spacing-space6); font-size: var(--typography-textMd); gap: var(--spacing-gap2); }
+.button--size-sm > div { padding-inline: var(--size-relative1); padding-block: var(--size-relative1); font-size: var(--typography-textSm); gap: var(--size-fixed2); }
+.button--size-md > div { padding-inline: var(--size-relative2); padding-block: var(--size-relative2); font-size: var(--typography-textBase); gap: var(--size-fixed2); }
+.button--size-lg > div { padding-inline: var(--size-relative6); padding-block: var(--size-relative6); font-size: var(--typography-textMd); gap: var(--size-fixed2); }
 
 /* Elevation */
 .button--elevation-base   { box-shadow: var(--elevation-boxShadowBase); }

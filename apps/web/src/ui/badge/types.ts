@@ -1,5 +1,5 @@
 import type { ReactElement, Ref } from 'react';
-import type { SxFill, SxIntent, SxRadius } from '../core';
+import type { TsFill, TsIntent, TsRadius } from '../@core';
 import type { LayoutProps } from '../types';
 import type { IconProps } from '../icon/types';
 import type { TextProps } from '../text/types';
@@ -7,10 +7,10 @@ import type { SlotProps } from '../slot/types';
 
 
 export type BadgeVariant = {
-  fill?: SxFill;
-  intent?: SxIntent;
+  fill?: TsFill;
+  intent?: TsIntent;
   size?: 'sm' | 'md' | 'lg';
-  radius?: SxRadius;
+  radius?: TsRadius;
   dot?: boolean;
 };
 

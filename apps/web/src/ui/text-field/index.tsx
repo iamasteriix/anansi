@@ -5,7 +5,7 @@ import type {
   GlassTextFieldProps, GlassTextFieldVariant, TextFieldProps, TextFieldVariant,
 } from './types';
 import { useCallback, useEffect, useRef } from 'react';
-import { resolveA11y, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import { getAnchorOrdering, resolveBaseVariants, resolveGlassVariants } from './utils';
 import {
   GlassTextFieldGroup, TextFieldGroup, TextFieldIcon, TextFieldLabel, TextFieldLeading,
@@ -40,7 +40,7 @@ const parseTargetId = (id: string | undefined) => {
 
 
 const TextFieldBase = ({
-  children, id, sx, style, a11y, testID, ref,
+  children, id, theme, style, a11y, testID, ref,
   autoComplete, autoFocus, defaultValue, inputMode, maxLength, placeholder,
   readOnly, submitBehavior, value,
   onBlur, onChange, onChangeText, onFocus, onKeyPress, onPressIn, onPressOut, onScroll,
@@ -246,7 +246,7 @@ const TextFieldBase = ({
     };
   }, [onLayout]);
 
-  const { cssProperties } = useMediaQuery(sx, style);
+  const { cssProperties } = useMediaQuery(theme, style);
   const accessibility = resolveA11y(a11y);
 
   const { leading, trailing } = getAnchorOrdering(children);

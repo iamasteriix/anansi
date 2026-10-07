@@ -1,10 +1,6 @@
 :root {
   --fit-auto: auto;
   --fit-content: fit-content;
-  --fit-quarter: 25%;
-  --fit-third: 33.333%;
-  --fit-half: 50%;
-  --fit-fill: 100%;
 }
 
 html {

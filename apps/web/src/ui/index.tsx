@@ -8,3 +8,4 @@ export { Pressable } from './pressable';
 export { Badge } from './badge';
 export { Toolbar } from './toolbar';
 export { Image } from './image';
+export { ContextMenu } from './context-menu';

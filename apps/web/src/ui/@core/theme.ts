@@ -1,16 +1,17 @@
 import type { CSSProperties } from 'react';
 import type {
-  StyleValue, SxColor, SxElevation, SxFit, SxTypeface, SxFontSize, SxFontWeight,
-  SxIntent, SxProps, SxRadius, SxShadow, SxSpace, SxStrokeColor, SxStrokeWeight,
-  SxSurface, SxTracking,
+  StyleValue, TsColor, TsElevation, TsTypeface, TsFontSize, TsFontWeight, TsIntent,
+  TSProperties, TsRadius, TsShadow, TsStrokeColor, TsStrokeWeight, TsSize,
+  TsSurface, TsTracking,
   BreakpointType, ThemeTokensType, ResponsiveProp, BreakpointOptions, MediaQueryHook,
+  ThemeProviderValue,
   VariantRegistry,
 } from './types';
-import { useMemo, useSyncExternalStore } from 'react';
+import { createContext, useContext, useMemo, useSyncExternalStore } from 'react';
 import {
-  sx_fit, sx_intent, sx_radius, sx_spacing, sx_stroke_color, sx_stroke_weight,
-  sx_color, sx_typeface, sx_font_size, sx_font_weight, sx_letter_spacing, sx_level,
-  sx_line_height, sx_shadow, sx_surface,
+  ts_intent, ts_radius, ts_stroke_color, ts_stroke_weight, ts_color, ts_typeface,
+  ts_font_size, ts_font_weight, ts_level, ts_line_height, ts_shadow, ts_surface, ts_size,
+  ts_letter_spacing,
   breakpoint_list, default_breakpoints,
 } from './constants';
 import { tokens } from './tokens';
@@ -88,54 +89,53 @@ const hasAttribute = (
 ): value is string => typeof value === 'string' && Object.hasOwn(map, value);
 
 
-const resolveSxValue = (
-  key: keyof SxProps,
+const resolveThemeSheetValue = (
+  key: keyof TSProperties,
   value: any,
 ): StyleValue => {
   if (value === undefined || value === null) return undefined;
 
   // elevation
   if (key === 'elevation') {
-    if (hasAttribute(sx_level, value)) return sx_level[value as SxElevation];
+    if (hasAttribute(ts_level, value)) return ts_level[value as TsElevation];
   }
 
   // map to spacing or fit
   if (spaceOrFitKeys.has(key)) {
-    if (hasAttribute(sx_spacing, value)) return sx_spacing[value as SxSpace];
-    if (hasAttribute(sx_fit, value)) return sx_fit[value as SxFit];
+    if (hasAttribute(ts_size, value)) return ts_size[value as TsSize];
     if (value === 'auto') return 'auto';
     if (/^-?\d*\.?\d+px$/.test(value)) return value;
   }
 
   // background color
   if (key === 'backgroundColor') {
-    if (hasAttribute(sx_surface, value)) return sx_surface[value as SxSurface];
-    if (hasAttribute(sx_intent, value)) return sx_intent[value as SxIntent];
+    if (hasAttribute(ts_surface, value)) return ts_surface[value as TsSurface];
+    if (hasAttribute(ts_intent, value)) return ts_intent[value as TsIntent];
   }
 
   // border
   if (key === 'borderColor') {
-    if (hasAttribute(sx_intent, value)) return sx_intent[value as SxIntent];
-    if (hasAttribute(sx_stroke_color, value)) return sx_stroke_color[value as SxStrokeColor];
+    if (hasAttribute(ts_intent, value)) return ts_intent[value as TsIntent];
+    if (hasAttribute(ts_stroke_color, value)) return ts_stroke_color[value as TsStrokeColor];
   }
-  if (key === 'borderRadius') return sx_radius[value as SxRadius];
+  if (key === 'borderRadius') return ts_radius[value as TsRadius];
 
   // the implications of adding this single edge case are making me sick
-  if (borderWidthKeys.has(key)) return sx_stroke_weight[value as SxStrokeWeight];
+  if (borderWidthKeys.has(key)) return ts_stroke_weight[value as TsStrokeWeight];
 
   // box shadow
   if (key === 'boxShadow') {
-    if (hasAttribute(sx_shadow, value)) return sx_shadow[value as SxShadow];
+    if (hasAttribute(ts_shadow, value)) return ts_shadow[value as TsShadow];
   }
 
   // text
   if (textKeys.has(key)) {
-    if (hasAttribute(sx_font_size, value)) return sx_font_size[value as SxFontSize];
-    if (key === 'lineHeight' && value in sx_line_height) return sx_line_height[value as SxTracking];
-    if (key === 'letterSpacing' && value in sx_letter_spacing) return sx_letter_spacing[value as SxTracking];
-    if (hasAttribute(sx_font_weight, value)) return sx_font_weight[value as SxFontWeight];
-    if (hasAttribute(sx_typeface, value)) return sx_typeface[value as SxTypeface];
-    if (hasAttribute(sx_color, value)) return sx_color[value as SxColor];
+    if (hasAttribute(ts_font_size, value)) return ts_font_size[value as TsFontSize];
+    if (key === 'lineHeight' && value in ts_line_height) return ts_line_height[value as TsTracking];
+    if (key === 'letterSpacing' && value in ts_letter_spacing) return ts_letter_spacing[value as TsTracking];
+    if (hasAttribute(ts_font_weight, value)) return ts_font_weight[value as TsFontWeight];
+    if (hasAttribute(ts_typeface, value)) return ts_typeface[value as TsTypeface];
+    if (hasAttribute(ts_color, value)) return ts_color[value as TsColor];
   }
 
   // css-native or raw strings
@@ -147,13 +147,13 @@ const resolveSxValue = (
 
 /**
  * @note Do not assume that anything just passes through here. Confirm that every key in
- * `SxProps` is resolved in the `resolveSxValue` helper.
+ * `TSProperties` is resolved in the `resolveThemeSheetValue` helper.
  */
-export const resolveSx = (
-  sx?: SxProps,
+export const resolveThemeSheet = (
+  theme?: TSProperties,
   breakpoint?: BreakpointType,
 ): CSSProperties => {
-  if (sx === undefined || sx === null) return {} as CSSProperties;
+  if (theme === undefined || theme === null) return {} as CSSProperties;
   
   // mobile-first means we fall back to smallest breakpoint to prevent flash
   const currentBreakpoint = breakpoint ?? breakpointsSorted[0].key;
@@ -161,19 +161,19 @@ export const resolveSx = (
   const styles: Record<string, StyleValue> = {};
 
   // resolve each responsive prop to a single value at the current breakpoint
-  const sxKeys = Object.keys(sx) as Array<keyof SxProps>;
-  const sxResolved: Record<string, any> = {};
-  for (const key of sxKeys) {
-    const value = sx[key];
+  const tsKeys = Object.keys(theme) as Array<keyof TSProperties>;
+  const tsResolved: Record<string, any> = {};
+  for (const key of tsKeys) {
+    const value = theme[key];
     if (value === undefined || value === null) continue;
-    sxResolved[key] = resolveBreakpoint(value, currentBreakpoint);
+    tsResolved[key] = resolveBreakpoint(value, currentBreakpoint);
   }
 
   // map each resolved value to a css property
-  const sxResolvedEntries = Object.entries(sxResolved) as [keyof SxProps, unknown][];
-  for (const [key, value] of sxResolvedEntries) {
+  const tsResolvedEntries = Object.entries(tsResolved) as [keyof TSProperties, unknown][];
+  for (const [key, value] of tsResolvedEntries) {
     if (value === undefined || value === null) continue;
-    const cssValue = resolveSxValue(key, value);
+    const cssValue = resolveThemeSheetValue(key, value);
 
     // handle margin expansion
     if (key === 'margin') styles.margin = cssValue;
@@ -204,7 +204,7 @@ export const resolveSx = (
 // ======================================================================================
 
 
-// THEME API ============================================================================
+// API ==================================================================================
 const mergeTheme = (
   base: ThemeTokensType,
   override?: ThemeTokensType
@@ -213,7 +213,7 @@ const mergeTheme = (
   return {
     colors:     { ...base.colors,     ...override.colors, },
     typography: { ...base.typography, ...override.typography, },
-    spacing:    { ...base.spacing,    ...override.spacing, },
+    size:       { ...base.size,       ...override.size, },
     shape:      { ...base.shape,      ...override.shape, },
     elevation:  { ...base.elevation,  ...override.elevation, },
     optical:    { ...base.optical,    ...override.optical, },
@@ -222,8 +222,8 @@ const mergeTheme = (
 }
 
 
-export const SxStyles = {
-  create: <T extends Record<string, SxProps>> (styles: T): T => styles,
+export const ThemeSheet = {
+  create: <T extends Record<string, TSProperties>> (styles: T): T => styles,
   
   variants: <
     T extends { [K in keyof VariantRegistry]?: Record<string, NonNullable<VariantRegistry[K]>> }
@@ -293,18 +293,52 @@ const getBreakpointServerSnapshot = (): BreakpointType | undefined => undefined;
 
 
 /**
- * Memoizes only when `sx` and `style` are referentially stable. You are encouraged to use
- * `SxStyles.create` at module level since inline `sx={{ .... }}` recomputes every render
+ * Memoizes only when `theme` and `style` are referentially stable. You are encouraged to use
+ * `ThemeSheet.create` at module level since inline `theme={{ .... }}` recomputes every render
  */
 export const useMediaQuery = (
-  sx?: SxProps,
+  theme?: TSProperties,
   style?: CSSProperties,
 ): MediaQueryHook => {
   const breakpoint = useSyncExternalStore(subscribeToViewport, getBreakpointSnapshot, getBreakpointServerSnapshot);
   return useMemo(() => {
-    const sxStyles = resolveSx(sx, breakpoint);
-    const cssProperties = { ...sxStyles, ...style };
+    const tsStyles = resolveThemeSheet(theme, breakpoint);
+    const cssProperties = { ...tsStyles, ...style };
     return ({ cssProperties, breakpoint });
-  }, [sx, style, breakpoint]);
+  }, [theme, style, breakpoint]);
 }
 // ======================================================================================
+
+
+// CONTEXT ==============================================================================
+/**
+ * Initializes theme context
+ */
+export const ThemeContext = createContext<ThemeProviderValue | null>(null);
+
+/**
+ * Creates theme context hook
+ */
+export const useTheme = (): ThemeProviderValue => {
+  const values = useContext(ThemeContext);
+  if (!values) throw new Error ('invalid theme');
+  return values;
+}
+
+/**
+ * Flattens the resolved token set into CSS custom properties
+ * and injects them onto a wrapping div.
+ * e.g. colors.primary -> --colors-primary
+ */
+export const toCSSVariables = (tokens: ThemeTokensType): Record<string, string> => {
+  return Object
+    .entries(tokens)
+    .reduce((acc, [category, values]) => {
+      Object.entries(values).forEach(([key, value]) => {
+        acc[`--${category}-${key}`] = value as string
+      });
+      return acc;
+    },
+    {} as Record<string, string>
+  );
+}

@@ -1,12 +1,12 @@
 import type { CSSProperties, } from 'react';
 import type { ThemeProviderProps, ThemesType } from './types';
-import { storageAdapter, tokens, } from '../core';
+import { storageAdapter, tokens, } from '.';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { ThemeContext } from './context';
-import { toCSSVariables } from './utils';
-import styles from './style.module.css';
+import { ThemeContext, toCSSVariables } from './theme';
+import { ChromeContext, } from './layout';
 
 
+// THEME ================================================================================
 const default_themes: ThemesType = { moonsong: tokens, };
 
 
@@ -75,12 +75,15 @@ export const ThemeProvider = ({
 
   return (
     <ThemeContext.Provider value={ themeProviderValues }>
-      <div
-        className={ styles.theme }
-        style={ cssVars }
-      >
+      <div style={ cssVars }>
         { children }
       </div>
     </ThemeContext.Provider>
   );
 }
+// ======================================================================================
+
+
+// LAYOUT: Chrome =======================================================================
+export const ChromeProvider = ChromeContext.Provider;
+// ======================================================================================

@@ -32,19 +32,19 @@
 /* Sizes */
 .glass-text-field--size-sm {
   font-size: var(--typography-textSm);
-  gap: var(--spacing-space2);
+  gap: var(--size-relative2);
 }
 
 .glass-text-field--size-md {
-  padding: var(--spacing-space1) var(--spacing-space2);
+  padding: var(--size-relative1) var(--size-relative2);
   font-size: var(--typography-textBase);
-  gap: var(--spacing-space3);
+  gap: var(--size-relative3);
 }
 
 .glass-text-field--size-lg {
-  padding: var(--spacing-space4) var(--spacing-space5);
+  padding: var(--size-relative4) var(--size-relative5);
   font-size: var(--typography-textBase);
-  gap: var(--spacing-space4);
+  gap: var(--size-relative4);
 }
 
 /* Radius forwarding */

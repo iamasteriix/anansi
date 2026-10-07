@@ -1,5 +1,5 @@
 import type { ElementBaseProps, } from '../types';
-import type { SxColor, SxTypeface } from '../core';
+import type { TsColor, TsTypeface } from '../@core';
 import type { ReactElement, Ref } from 'react';
 
 
@@ -17,8 +17,8 @@ type TextChild = string | number | boolean | null | undefined | ReactElement<Tex
 
 export type TextVariant = {
   role?: TextRole;
-  typeface?: SxTypeface;
-  color?: SxColor;
+  typeface?: TsTypeface;
+  color?: TsColor;
 };
 
 export type TextProps = Omit<ElementBaseProps, 'children'> & {

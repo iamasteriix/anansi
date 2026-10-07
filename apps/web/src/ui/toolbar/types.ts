@@ -1,14 +1,13 @@
 import type { ReactElement, Ref } from 'react';
-import type { SxGap, SxJustify } from '../core';
+import type { SxGap, SxJustify, SxSpace } from '../@core';
 import type { ElementChildren, LayoutProps } from '../types';
 import type { SlotProps } from '../slot/types';
 import type { ViewVariant } from '../view/types';
 
 
 export type ToolbarVariant = ViewVariant & {
-  justify?: SxJustify;
-  gap?: SxGap;
   orientation?: 'horizontal' | 'vertical';
+  size?: SxSpace;
 };
 
 export type ToolbarSegmentProps = LayoutProps & {

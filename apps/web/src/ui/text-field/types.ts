@@ -2,7 +2,7 @@ import type {
   ChangeEventHandler, FocusEventHandler, KeyboardEventHandler, ReactElement, Ref,
   SyntheticEvent,
 } from 'react';
-import type { LayoutEvent, PressEvent, SxElevation, SxIntent, SxRadius, } from '../core';
+import type { LayoutEvent, PressEvent, TsElevation, TsIntent, TsRadius, } from '../@core';
 import type { LayoutProps, } from '../types';
 import type { IconProps } from '../icon/types';
 import type { ButtonProps } from '../button/types';
@@ -14,11 +14,11 @@ import type { SlotProps } from '../slot/types';
 
 export type TextFieldVariant = {
   fill?: 'filled' | 'outlined' | 'ghost';
-  outline?: SxIntent;
-  elevation?: SxElevation;
+  outline?: TsIntent;
+  elevation?: TsElevation;
   shadow?: 'auto' | 'none';
   size?: 'sm' | 'md' | 'lg';
-  radius?: SxRadius;
+  radius?: TsRadius;
   pin?: 'top' | 'bottom';
 };
 
@@ -94,9 +94,9 @@ export type GlassTextFieldVariant = {
   intensity?: 'faint' | 'subtle' | 'base' | 'strong';
   blur?: 'sm' | 'md' | 'lg';
   size?: 'sm' | 'md' | 'lg';
-  radius?: SxRadius;
+  radius?: TsRadius;
   pin?: 'top' | 'bottom';
-  elevation?: SxElevation;
+  elevation?: TsElevation;
 };
 
 export type GlassTextFieldProps = Omit<TextFieldProps, 'variant'> & {

@@ -38,7 +38,7 @@ const renderChildren = (children: ButtonProps['children']) => {
  * Unified foundation for both regular and glass buttons
  */
 const ButtonBase = ({
-  children, id, sx, a11y, style, testID, ref,
+  children, id, theme, a11y, style, testID, ref,
   disabled,
   className,
 }: ButtonProps & {
@@ -49,7 +49,7 @@ const ButtonBase = ({
       <Pressable
         id={ id }
         disabled={ disabled }
-        sx={ sx }
+        theme={ theme }
         style={ style }
         a11y={ a11y }
         testID={ testID }

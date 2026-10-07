@@ -1,4 +1,4 @@
-import type { SxProps } from '../core';
+import type { SxProps } from '../@core';
 import type { SlotParams, SlotProps, } from './types';
 import { useMemo } from 'react';
 import { View } from '../view';

@@ -1,5 +1,5 @@
 import type { IconProps, IconVariant } from './types';
-import { resolveA11y, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import styles from './style.module.css';
 
 
@@ -19,7 +19,7 @@ const default_a11y = { hidden: true, };
 
 
 export const Icon = ({
-  id, sx, style, testID,
+  id, theme, style, testID,
   variant = default_variant,
   a11y = default_a11y,
   icon: IconComponent,
@@ -28,7 +28,7 @@ export const Icon = ({
   const fontSize = size_map[variant.size || 'md'];
   const fill = variant.name === 'duotone' ? ['currentColor', 'var(--colors-accent)'] : 'currentColor';
   
-  const { cssProperties, } = useMediaQuery(sx, style);
+  const { cssProperties, } = useMediaQuery(theme, style);
   const accessibility = resolveA11y(a11y);
 
   return (

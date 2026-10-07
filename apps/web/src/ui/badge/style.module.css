@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  gap: var(--spacing-gap2);
+  gap: var(--size-fixed2);
   background-color: var(--badge-bg);
   color: var(--badge-fg);
   border: var(--shape-strokeMedium) solid var(--badge-border);
@@ -21,9 +21,9 @@
 }
 
 /* Sizes */
-.badge--size-sm { min-block-size: var(--spacing-space5); padding-inline: var(--spacing-space2); font-size: var(--typography-text2xs); border-radius: var(--shape-radiusSm); }
-.badge--size-md { min-block-size: var(--spacing-space6); padding-inline: var(--spacing-space3); font-size: var(--typography-textXs); border-radius: var(--shape-radiusMd); }
-.badge--size-lg { min-block-size: var(--spacing-space8); padding-inline: var(--spacing-space4); font-size: var(--typography-textSm); border-radius: var(--shape-radiusMd); }
+.badge--size-sm { min-block-size: var(--size-relative5); padding-inline: var(--size-relative2); font-size: var(--typography-text2xs); border-radius: var(--shape-radiusSm); }
+.badge--size-md { min-block-size: var(--size-relative6); padding-inline: var(--size-relative3); font-size: var(--typography-textXs); border-radius: var(--shape-radiusMd); }
+.badge--size-lg { min-block-size: var(--size-relative8); padding-inline: var(--size-relative4); font-size: var(--typography-textSm); border-radius: var(--shape-radiusMd); }
 
 /* Radius overrides */
 .badge--radius-sm   { border-radius: var(--shape-radiusSm); }
@@ -35,8 +35,8 @@
 
 /* Dot */
 .badge--dot {
-  inline-size: var(--spacing-space2);
-  block-size: var(--spacing-space2);
+  inline-size: var(--size-relative2);
+  block-size: var(--size-relative2);
   min-block-size: 0;
   padding: 0;
   gap: 0;

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type {
-  SxElevation, SxFill, SxFit, SxGap, SxIntent, SxJustify, SxRadius,
-} from '../core';
+  TsElevation, TsFill, TsIntent, TsJustify, TsRadius, TsSize,
+} from '../@core';
 import type { ElementChildren } from '../types';
 import type { PressableProps, PressableState } from '../pressable/types';
 import type { SlotProps } from '../slot/types';
@@ -10,13 +10,13 @@ import type { BadgeProps } from '../badge/types';
 
 
 export type ButtonVariant = {
-  fill?: SxFill;
-  intent?: SxIntent;
-  fit?: SxFit;
-  elevation?: SxElevation;
+  fill?: TsFill;
+  intent?: TsIntent;
+  fit?: TsSize;
+  elevation?: TsElevation;
   size?: 'sm' | 'md' | 'lg';
-  radius?: SxRadius;
-  justify?: SxJustify;
+  radius?: TsRadius;
+  justify?: TsJustify;
 };
 
 export type GlassButtonVariant = ButtonVariant & {
@@ -41,7 +41,7 @@ type ButtonSlotChild =
   | ReactElement<ButtonBadgeSlot>[];
 
 export type ButtonSlotProps = Omit<SlotProps, 'children'> & {
-  gap?: SxGap;
+  gap?: TsSize;
   children: ButtonSlotChild;
 };
 

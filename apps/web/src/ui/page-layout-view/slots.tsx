@@ -3,12 +3,12 @@ import { View } from '../view';
 
 
 export const PageLayoutHeader = ({
-  children, sx,
+  children, theme,
   ...rest
 }: SlotProps) => {
   return (
     <View
-      sx={{ flexShrink: 0, ...sx, }}
+      theme={{ flexShrink: 0, ...theme, }}
       { ...rest }
     >
       { children }
@@ -18,12 +18,12 @@ export const PageLayoutHeader = ({
 
 
 export const PageLayoutFooter = ({
-  children, sx,
+  children, theme,
   ...rest
 }: SlotProps) => {
   return (
     <View
-      sx={{ flexShrink: 0, ...sx, }}
+      theme={{ flexShrink: 0, ...theme, }}
       { ...rest }
     >
       { children }

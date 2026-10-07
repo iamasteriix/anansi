@@ -1,4 +1,4 @@
-import type { SxProps } from '../core';
+import type { SxProps } from '../@core';
 import type { ToolbarSegmentProps } from './types';
 import type { SlotProps } from '../slot/types';
 import { createSlot } from '../slot';

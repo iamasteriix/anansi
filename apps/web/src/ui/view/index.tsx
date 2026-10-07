@@ -1,15 +1,15 @@
 import type { GlassViewProps, ViewProps, } from './types';
-import { resolveA11y, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import { resolveBaseVariants, resolveGlassVariants, } from './utils';
 
 
-const ViewBase = ({
-  children, id, sx, a11y, style, testID, ref,
+export const LayoutElement = ({
+  children, id, theme, a11y, style, testID, ref,
   className,  // build class name from variant features
 }: Omit<ViewProps, 'variant'> & {
   className: string;
 }) => {
-  const { cssProperties, } = useMediaQuery(sx, style);  // resolve styling at media query level
+  const { cssProperties, } = useMediaQuery(theme, style);  // resolve styling at media query level
   const accessibility = resolveA11y(a11y);              // resolve accessibility props
 
   return (
@@ -28,7 +28,7 @@ const ViewBase = ({
 
 
 export const View = ({ variant, ...rest }: ViewProps) => (
-  <ViewBase
+  <LayoutElement
     { ...rest }
     className={ resolveBaseVariants(variant) }
   />
@@ -36,7 +36,7 @@ export const View = ({ variant, ...rest }: ViewProps) => (
 
 
 export const GlassView = ({ variant, ...rest }: GlassViewProps) => (
-  <ViewBase
+  <LayoutElement
     { ...rest }
     className={ resolveGlassVariants(variant) }
   />

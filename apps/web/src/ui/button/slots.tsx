@@ -45,14 +45,14 @@ export const ButtonBadge = ({
 
 
 export const ButtonSlot = ({
-  children, gap, sx,
+  children, gap, theme,
   position = 'leading',
   ...rest
 }: ButtonSlotProps) => {
   return (
     <MakeButtonSlot
       position={ position }
-      sx={{ ...sx, gap, }}
+      theme={{ ...theme, gap, }}
       { ...rest }
     >
       { children }

@@ -1,7 +1,7 @@
 import type { SlotProps, } from '../slot/types';
 import type { GlassTextFieldGroupProps, TextFieldGroupProps, TextFieldIconSlot, TextFieldLabelProps } from './types';
 import { createSlot } from '../slot';
-import { resolveA11y, resolveSx, useMediaQuery } from '../core';
+import { resolveA11y, useMediaQuery } from '../@core';
 import { View } from '../view';
 import { Icon } from '../icon';
 
@@ -58,18 +58,16 @@ export const TextFieldLabel = ({ children, }: TextFieldLabelProps) => <MakeLabel
 
 
 const TextFieldGroupBase = ({
-  children, id, sx, style, a11y, testID, ref,
+  children, id, theme, style, a11y, testID, ref,
 }: (TextFieldGroupProps | GlassTextFieldGroupProps)) => {
 
-  const { breakpoint } = useMediaQuery();
-  const sxStyles = resolveSx(sx, breakpoint);
-  const styleObj = Object.assign(sxStyles, style);
+  const { cssProperties } = useMediaQuery(theme, style);
   const accessibility = resolveA11y(a11y);
 
   return (
     <View
       id={id}
-      style={styleObj}
+      style={cssProperties}
       a11y={accessibility}
       testID={testID}
       ref={ref}

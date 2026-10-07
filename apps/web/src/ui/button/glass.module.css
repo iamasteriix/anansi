@@ -63,9 +63,9 @@
 .glass-button--intent-error     { --gb-fg: var(--colors-error);   --gb-border: rgb(from var(--colors-error)   r g b / .4); }
 
 /* Sizes (Padding applied directly to Pressable's div surface) */
-.glass-button--size-sm > div { padding-inline: var(--spacing-space1); padding-block: var(--spacing-space1); font-size: var(--typography-textSm); gap: var(--spacing-gap2); }
-.glass-button--size-md > div { padding-inline: var(--spacing-space2); padding-block: var(--spacing-space2); font-size: var(--typography-textBase); gap: var(--spacing-gap2); }
-.glass-button--size-lg > div { padding-inline: var(--spacing-space5); padding-block: var(--spacing-space5); font-size: var(--typography-textMd); gap: var(--spacing-gap2); }
+.glass-button--size-sm > div { padding-inline: var(--size-relative1); padding-block: var(--size-relative1); font-size: var(--typography-textSm); gap: var(--size-fixed2); }
+.glass-button--size-md > div { padding-inline: var(--size-relative2); padding-block: var(--size-relative2); font-size: var(--typography-textBase); gap: var(--size-fixed2); }
+.glass-button--size-lg > div { padding-inline: var(--size-relative5); padding-block: var(--size-relative5); font-size: var(--typography-textMd); gap: var(--size-fixed2); }
 
 /* Fit */
 .glass-button--fit-auto    { width: var(--fit-auto); }

@@ -1,5 +1,5 @@
 import type { Ref, SyntheticEvent, } from 'react';
-import type { LayoutEvent } from '../core';
+import type { LayoutEvent } from '../@core';
 import type { LayoutProps } from '../types';
 
 
