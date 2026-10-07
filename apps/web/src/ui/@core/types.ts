@@ -1,8 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
-import type { ButtonVariant, GlassButtonVariant } from '../button/types';
-import type { GlassViewVariant, ViewVariant } from '../view/types';
-import type { ToolbarVariant } from '../toolbar/types';
-import type { GlassTextFieldVariant, TextFieldVariant } from '../text-field/types';
+import type { CSSProperties, PointerEvent, ReactElement, ReactNode, Ref, SyntheticEvent } from 'react';
 import { tokens } from './tokens';
 
 
@@ -137,13 +133,13 @@ export interface TextFieldVariantExt {};
 export interface GlassTextFieldVariantExt {};
 
 export interface VariantRegistry {
-  view: ViewVariant | ViewVariantExt;
-  glassView: GlassViewVariant | GlassViewVariantExt;
-  button: ButtonVariant | ButtonVariantExt;
-  glassButton: GlassButtonVariant | GlassButtonVariantExt;
-  toolbar: ToolbarVariant | ToolbarVariantExt;
-  textField: TextFieldVariant | TextFieldVariant;
-  glassTextField: GlassTextFieldVariant | GlassTextFieldVariantExt;
+  view: ViewVariantExt;
+  glassView: GlassViewVariantExt;
+  button: ButtonVariantExt;
+  glassButton: GlassButtonVariantExt;
+  textField: TextFieldVariantExt;
+  glassTextField: GlassTextFieldVariantExt;
+  toolbar: ToolbarVariantExt;
 };
 // ======================================================================================
 
@@ -246,9 +242,43 @@ export type PressEvent = {
 // ======================================================================================
 
 
-// LAYOUT ===============================================================================
-export type Chrome = {
-  size?: 'xsm' | 'sm' | 'md' | 'lg' | 'xl';
+// UI ===============================================================================
+export type ElementChildren = boolean | ReactElement | ElementChildren[];
+
+export type ElementProps = {
+  children?: ElementChildren;
+  id?: string;
+  style?: CSSProperties;
+  theme?: TSProperties;
+  a11y?: A11yProps;
+  testID?: string;
+};
+
+export type ViewElementProps = ElementProps & {
+  classes?: string;
+  ref?: Ref<HTMLDivElement>;
+};
+
+export type PressElementState = {
+  pressed?: boolean;
+  disabled?: boolean;
+};
+
+type PressElementEvent = SyntheticEvent<HTMLDivElement>;
+
+export type PressElementProps = Omit<ElementProps, 'children'> & {
+  onPress?: (event: PressElementEvent) => void;
+  onPressIn?: (event: PressElementEvent) => void;
+  onPressOut?: (event: PressElementEvent) => void;
+  onPressMove?: (event: PressElementEvent) => void;
+  onLongPress?: (event: PressElementEvent) => void;
+  onHoverIn?: (event: PointerEvent) => void;
+  onHoverOut?: (event: PointerEvent) => void;
+  delayLongPress?: number;
+  disabled?: boolean;
+  children?: ElementChildren | ((state: PressElementState) => ElementChildren);
+  classes?: string;
+  ref?: Ref<HTMLDivElement>;
 };
 
 export type SlotMarker = {
@@ -257,4 +287,3 @@ export type SlotMarker = {
     parentName: string;
   };
 };
-

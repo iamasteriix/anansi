@@ -55,6 +55,15 @@ export const ts_level: Record<TsElevation, string> = {
   max: 'var(--elevation-levelMax)',
 };
 
+export const ts_shadow: Record<TsShadow, string> = {
+  base: 'var(--elevation-shadowBase)',
+  low: 'var(--elevation-shadowLow)',
+  raised: 'var(--elevation-shadowRaised)',
+  medium: 'var(--elevation-shadowMedium)',
+  high: 'var(--elevation-shadowHigh)',
+  max: 'var(--elevation-shadowMax)',
+};
+
 export const ts_radius: Record<TsRadius, string> = {
   sm: 'var(--shape-radiusSm)',
   md: 'var(--shape-radiusMd)',
@@ -94,15 +103,6 @@ export const ts_surface: Record<TsSurface, string> = {
   raised: 'var(--colors-bgRaised)',
   overlay: 'var(--colors-bgOverlay)',
   floating: 'var(--colors-bgFloating)',
-};
-
-export const ts_shadow: Record<TsShadow, string> = {
-  base: 'var(--elevation-boxShadowBase)',
-  low: 'var(--elevation-boxShadowLow)',
-  raised: 'var(--elevation-boxShadowRaised)',
-  medium: 'var(--elevation-boxShadowMedium)',
-  high: 'var(--elevation-boxShadowHigh)',
-  max: 'var(--elevation-boxShadowMax)',
 };
 
 export const ts_font_size: Record<TsFontSize, string> = {

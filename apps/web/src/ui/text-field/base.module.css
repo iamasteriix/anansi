@@ -102,7 +102,7 @@
 .text-field--elevation-high { z-index: var(--elevation-levelHigh); }
 .text-field--elevation-max { z-index: var(--elevation-levelMax); }
 
-.text-field--shadow-none { box-shadow: var(--elevation-boxShadowBase); }
+.text-field--shadow-none { box-shadow: none; }
 .text-field--shadow-base { box-shadow: var(--elevation-boxShadowBase); }
 .text-field--shadow-low { box-shadow: var(--elevation-boxShadowLow); }
 .text-field--shadow-raised { box-shadow: var(--elevation-boxShadowRaised); }

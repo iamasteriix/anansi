@@ -54,3 +54,12 @@
 .glass-text-field--radius-xl { border-radius: var(--shape-radiusXl); }
 .glass-text-field--radius-2xl { border-radius: var(--shape-radius2xl); }
 .glass-text-field--radius-full { border-radius: var(--shape-radiusFull); }
+
+/* Shadows */
+.glass-text-field--shadow-none { box-shadow: none; }
+.glass-text-field--shadow-base { box-shadow: var(--elevation-boxShadowBase); }
+.glass-text-field--shadow-low { box-shadow: var(--elevation-boxShadowLow); }
+.glass-text-field--shadow-raised { box-shadow: var(--elevation-boxShadowRaised); }
+.glass-text-field--shadow-medium { box-shadow: var(--elevation-boxShadowMedium); }
+.glass-text-field--shadow-high { box-shadow: var(--elevation-boxShadowHigh); }
+.glass-text-field--shadow-max { box-shadow: var(--elevation-boxShadowMax); }

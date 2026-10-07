@@ -138,12 +138,12 @@ const elevationTokens = {
   levelMedium: '30',
   levelHigh: '60',
   levelMax: '90',
-  boxShadowBase: 'none',
-  boxShadowLow: '0px 1px 3px rgba(201, 201, 201, .18)',
-  boxShadowRaised: '0px 2px 6px rgba(201, 201, 201, .21)',
-  boxShadowMedium: '0px 3px 12px rgba(201, 201, 201, .27)',
-  boxShadowHigh: '0px 6px 18px rgba(201, 201, 201, .36)',
-  boxShadowMax: '0px 9px 21px rgba(201, 201, 201, .42)',
+  shadowBase: 'none',
+  shadowLow: '0px 1px 3px rgba(201, 201, 201, .18)',
+  shadowRaised: '0px 2px 6px rgba(201, 201, 201, .21)',
+  shadowMedium: '0px 3px 12px rgba(201, 201, 201, .27)',
+  shadowHigh: '0px 6px 18px rgba(201, 201, 201, .36)',
+  shadowMax: '0px 9px 21px rgba(201, 201, 201, .42)',
 } as const;
 
 const motionTokens = {
