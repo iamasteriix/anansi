@@ -1,0 +1,29 @@
+.page-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.page-view--safe-top    { padding-block-start:  env(safe-area-inset-top, 0px); }
+.page-view--safe-bottom { padding-block-end:    env(safe-area-inset-bottom, 0px); }
+.page-view--safe-start  { padding-inline-start: env(safe-area-inset-left, 0px); }
+.page-view--safe-end    { padding-inline-end:   env(safe-area-inset-right, 0px); }
+
+.region-top,
+.region-bottom { flex: 0 0 auto; }
+
+.region-middle {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  min-block-size: 0;
+}
+
+.region-start,
+.region-end { flex: 0 0 auto; }
+
+.region-body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  min-block-size: 0;
+}

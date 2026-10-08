@@ -1,4 +1,5 @@
-import type { ViewElementProps } from '../@core';
+import type { Ref } from 'react';
+import type { ElementProps, } from '../@core';
 import type { TsElevation, TsIntent, TsSurface, } from '../@core';
 import { ViewElement } from '../@core';
 import baseStyles from './base.module.css';
@@ -19,12 +20,14 @@ export type GlassViewVariant = {
   blur?: 'sm' | 'md' | 'lg';
 };
 
-export type ViewProps = ViewElementProps & {
+export type ViewProps = ElementProps & {
   variant?: ViewVariant;
+  ref?: Ref<HTMLDivElement>;
 };
 
-export type GlassViewProps = ViewElementProps & {
+export type GlassViewProps = ElementProps & {
   variant?: GlassViewVariant;
+  ref?: Ref<HTMLDivElement>;
 };
 
 

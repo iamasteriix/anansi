@@ -1,9 +1,49 @@
-import type { ImageEvent, ImageProps } from './types';
+import type { Ref, SyntheticEvent, } from 'react';
+import type { ElementProps, LayoutEvent } from '../@core';
 import { useCallback, useEffect, useRef, } from 'react';
 import { resolveA11y, useMediaQuery } from '../@core';
-import { resolveVariants } from './utils';
+import styles from './style.module.css';
 
 
+// Types ————————————————————————————————————————————————————————————————————————————————
+type ImageEvent = SyntheticEvent<HTMLImageElement, Event>;
+
+export type ImageVariant = {
+  resize?: 'cover' | 'contain' | 'stretch' | 'center';
+  blur?: 'low' | 'medium' | 'high';
+};
+
+type ReferrerPolicy =
+  | 'no-referrer' | 'no-referrer-when-downgrade' | 'origin' | 'origin-when-cross-origin'
+  | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin' | 'unsafe-url';
+
+export type ImageProps = Omit<ElementProps, 'children'> & {
+  variant?: ImageVariant;
+  children?: never;
+  src: string;
+  alt: string;
+  crossOrigin?: 'anonymous' | 'use-credentials';
+  referrerPolicy?: ReferrerPolicy;
+  onError?: (event: ImageEvent) => void;
+  onLoad?: (event: ImageEvent) => void;
+  onLoadStart?: () => void;
+  onLoadEnd?: () => void;
+  onLayout?: (event: LayoutEvent) => void;
+  ref?: Ref<HTMLImageElement>;
+};
+
+
+// Utils ————————————————————————————————————————————————————————————————————————————————
+const resolveVariants = (variant: ImageVariant | undefined): string => {
+  return [
+    styles.image,
+    variant?.resize && styles[`image--resize-${variant.resize}`],
+    variant?.blur && styles[`image--blur-${variant.blur}`],
+  ].filter(Boolean).join(' ');
+};
+
+
+// CORE —————————————————————————————————————————————————————————————————————————————————
 export const Image = ({
   variant, src, alt, crossOrigin, referrerPolicy,
   onError, onLoad, onLoadStart, onLoadEnd, onLayout,

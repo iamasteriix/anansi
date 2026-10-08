@@ -37,7 +37,7 @@ export type TsJustify = 'start' | 'end' | 'center' | 'space-between' | 'space-ar
 export type TsDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
 export type TsWrap = 'wrap' | 'nowrap' | 'wrap-reverse';
 export type TsOverflow = 'visible' | 'hidden' | 'scroll' | 'auto';
-export type TsPosition = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
+export type TsPosition = 'static' | 'absolute' | 'fixed' | 'sticky';
 export type TsElevation = 'base' | 'low' | 'raised' | 'medium' | 'high' | 'max';
 export type TsSize =
   | 'fixed-1' | 'fixed-2' | 'fixed-3' | 'fixed-4'
@@ -102,6 +102,8 @@ export type TSProperties = {
   right?: ResponsiveProp<TsSize | 'auto'>;
   bottom?: ResponsiveProp<TsSize | 'auto'>;
   left?: ResponsiveProp<TsSize | 'auto'>;
+  insetInlineStart?: ResponsiveProp<TsSize | 'auto'>;
+  insetInlineEnd?: ResponsiveProp<TsSize | 'auto'>;
   gap?: ResponsiveProp<TsSize>;
   columnGap?: ResponsiveProp<TsSize>;
   rowGap?: ResponsiveProp<TsSize>;

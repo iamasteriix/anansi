@@ -1,13 +1,13 @@
 import type {
-  ComponentType, CSSProperties, KeyboardEvent, PointerEvent, ReactElement, ReactNode,
-  SyntheticEvent,
+  ComponentProps, ComponentType, CSSProperties, KeyboardEvent, PointerEvent,
+  ReactElement, ReactNode, SyntheticEvent,
 } from 'react';
 import type {
   PressElementProps, PressElementState, SlotMarker, ThemeProviderProps, ThemesType,
   ViewElementProps,
 } from './types';
 import {
-  Children, cloneElement, createContext, Fragment, isValidElement, useCallback,
+  Children, cloneElement, createContext, createElement, Fragment, isValidElement, useCallback,
   useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import { ThemeContext, toCSSVariables, useMediaQuery } from './theme';
@@ -321,32 +321,48 @@ export const useSlots = <N extends string> (
 }
 
 
-export const createSlot = <P extends object, S extends object = {}> (
-  Component: ComponentType<P>,
+// I need to use my own words for these types
+export const createSlot = <
+  C extends ComponentType<any>,
+  PublicProps extends object = ComponentProps<C>,
+  S extends object = {},
+>(
+  Component: C,
   opts: {
     slotName: string;
     parentName: string;
-    slotProps?: readonly (keyof S)[]; // slot-only props: consumed by parent, never forwarded to component
+    slotProps?: readonly (keyof S)[];                                  // slot-only props: consumed by parent, never forwarded to component (?)
+    derive?: (child: ComponentProps<C>, slot: S) => ComponentProps<C>; // translate (childProps, slotProps) to childProps before forwarding (??)
   },
-): ComponentType<P & S> & SlotMarker => {
-  
-  const Slot = (props: P & S) => {
+): ComponentType<PublicProps & S> & SlotMarker & Omit<C, keyof ComponentType> => {
+
+  // split slot-only props from the rest (??)
+  const splitProps = (props: PublicProps & S): [child: ComponentProps<C>, slot: S] => {
+    const child: Record<keyof S, unknown> = { ...props };
+    const slot: Record<PropertyKey, unknown> = {};
+    for (const propName of opts.slotProps ?? []) {
+      slot[propName] = child[propName];
+      delete child[propName];
+    }
+    return [child as ComponentProps<C>, slot as S];
+  };
+
+  const Slot = (props: PublicProps & S) => {
     const scope = useContext(SlotScope);
     if (scope !== opts.parentName) throw new Error(`<${opts.parentName}.${opts.slotName}> must be rendered inside <${opts.parentName}>`);
+    const [child, slot] = splitProps(props);
+    const forwarded = opts.derive ? opts.derive(child, slot) : child;
+    return createElement(Component, forwarded);
+  };
 
-    const forwarded = { ...props } as Record<PropertyKey, unknown>; // create copy
-    for (const key of opts.slotProps ?? []) delete forwarded[key as PropertyKey];
-    return <Component { ...(forwarded as unknown as P) }/>;
-  }
-
-  return Object.assign(Slot, {
+  return Object.assign(Slot, Component, {
     displayName: `${opts.parentName}.${opts.slotName}`,
     marker: {
       slotName: opts.slotName,
       parentName: opts.parentName,
     },
   });
-}
+};
 
 
 export const slotProp = <T,>(

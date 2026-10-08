@@ -1,8 +1,8 @@
 export type {
   ThemeTokensType, TSProperties, TsElevation, TsColor, TsTypeface, TsFill, TsIntent,
-  TsRadius, TsSurface, TsJustify, TsShadow, TsAlign, TsSize,
+  TsRadius, TsSurface, TsJustify, TsShadow, TsAlign, TsSize, TsPosition,
   StorageAdapter, StorageTopics,
-  ViewElementProps, PressElementProps,
+  ElementChildren, ElementProps, ViewElementProps, PressElementProps,
   LayoutEvent, PressEvent, TargetEvent,
   A11yProps,
 } from './types';
@@ -13,5 +13,5 @@ export { tokens, } from './tokens';
 export { resolveThemeSheet, ThemeSheet, useMediaQuery, useTheme, } from './theme';
 export {
   ThemeProvider,
-  ViewElement, PressElement, useSlots, createSlot, slotProp,
+  ViewElement, PressElement, useSlots, createSlot, slotProp, SlotScopeProvider,
 } from './ui';

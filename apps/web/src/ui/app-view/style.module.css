@@ -1,7 +1,6 @@
-.app {
+.app-view {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-block-size: 100vh;
   min-block-size: 100dvh;
   overflow: hidden;

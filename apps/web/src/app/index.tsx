@@ -1,11 +1,11 @@
-import { AppLayoutView } from '@/ui';
+import { AppView } from '@/ui';
 import { Home } from '@/layouts';
 
 
 export const App = () => {
   return (
-    <AppLayoutView>
+    <AppView>
       <Home/>
-    </AppLayoutView>
+    </AppView>
   );
 }
