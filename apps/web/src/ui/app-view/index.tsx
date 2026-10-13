@@ -1,7 +1,7 @@
 import type { ElementProps } from '../@core';
 import { ThemeProvider, ViewElement, } from '../@core';
 import styles from './style.module.css';
-import '@/assets/styles/fonts.css';
+import '../assets/styles/fonts.css';
 import './style.css';
 
 

@@ -4,6 +4,7 @@ import type {
 } from 'react';
 import type {
   PressElementProps, PressElementState, SlotMarker, ThemeProviderProps, ThemesType,
+  TsGlass,
   ViewElementProps,
 } from './types';
 import {
@@ -21,7 +22,7 @@ import styles from './style.module.css';
 // src/ui/view-element.tsx
 export const ViewElement = ({
   children, id, theme, a11y, style, testID, ref, classes,
-}: ViewElementProps) => {
+}: ViewElementProps & { classes?: string; }) => {
 
   const { cssProperties, } = useMediaQuery(theme, style);         // resolve styling at media query level
   const className = [styles['view-element'], classes].join(' ');  // merge css classes
@@ -50,7 +51,7 @@ export const PressElement = ({
   children, id, style, theme, a11y, testID, ref, classes,
   delayLongPress = 500,
   disabled = false, 
-}: PressElementProps) => {
+}: PressElementProps & { classes?: string; }) => {
 
   const [pressed, setPressed] = useState(false);
   
@@ -369,4 +370,20 @@ export const slotProp = <T,>(
   element: ReactElement,
   key: string
 ): T | undefined => (element.props as Record<string, unknown>)[key] as T | undefined;
+// ======================================================================================
+
+
+// UTILS ================================================================================
+export const resolveGlassStyle = (
+  glass: boolean | TsGlass | undefined,
+): string => {
+  if (!glass) return '';
+  const options = glass === true ? {} : glass;
+  return [
+    styles.glass,
+    styles[`glass--tint-${options.tint ?? 'raised'}`],
+    styles[`glass--intensity-${options.intensity} ?? 'base'`],
+    options.interactive && styles['glass--interactive'],
+  ].filter(Boolean).join(' ');
+}
 // ======================================================================================

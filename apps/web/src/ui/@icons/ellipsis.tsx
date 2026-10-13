@@ -1,5 +1,5 @@
 import type { IconComponent, IconProps } from './types';
-import { createIcon } from './create';
+import { createIcon } from './create-icon';
 
 
 const Icon = createIcon({

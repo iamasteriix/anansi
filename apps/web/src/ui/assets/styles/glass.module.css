@@ -1,0 +1,94 @@
+.glass {
+  --glass-tone:       var(--colors-bgRaised);
+  --glass-alpha:      var(--optical-opacityHigh);
+  --glass-blur:       var(--optical-blurMedium);
+  --glass-saturate:   var(--optical-saturateSubtle);
+  --glass-brightness: var(--optical-brightnessNormal);
+
+  position: relative;
+
+  background-color: rgb(from var(--glass-tone) r g b / var(--glass-alpha));
+
+  backdrop-filter:
+    blur(var(--glass-blur))
+    saturate(var(--glass-saturate))
+    brightness(var(--glass-brightness));
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur))
+    saturate(var(--glass-saturate))
+    brightness(var(--glass-brightness));
+
+  border-style: solid;
+  border-width: var(--shape-strokeMedium);
+  border-color: var(--colors-strokeSubtle);
+  border-top-color: var(--colors-strokeStrong);
+  border-bottom-width: var(--shape-strokeLight);
+}
+
+/* Tint — one class per allowed key, no fallthrough */
+.glass--tint-primary   { --glass-tone: var(--colors-primary); }
+.glass--tint-secondary { --glass-tone: var(--colors-secondary); }
+.glass--tint-accent    { --glass-tone: var(--colors-accent); }
+.glass--tint-info      { --glass-tone: var(--colors-info); }
+.glass--tint-success   { --glass-tone: var(--colors-success); }
+.glass--tint-warning   { --glass-tone: var(--colors-warning); }
+.glass--tint-error     { --glass-tone: var(--colors-error); }
+.glass--tint-base      { --glass-tone: var(--colors-bgBase); }
+.glass--tint-surface   { --glass-tone: var(--colors-bgSurface); }
+.glass--tint-subtle    { --glass-tone: var(--colors-bgSubtle); }
+.glass--tint-raised    { --glass-tone: var(--colors-bgRaised); }
+.glass--tint-overlay   { --glass-tone: var(--colors-bgOverlay); }
+.glass--tint-floating  { --glass-tone: var(--colors-bgFloating); }
+
+/* Intensity — fill density, blur depth, and brightness travel together */
+.glass--intensity-faint  {
+  --glass-alpha: var(--optical-opacityHigh);
+  --glass-blur: var(--optical-blurLow);
+  --glass-brightness: var(--optical-brightnessLow);
+}
+.glass--intensity-subtle {
+  --glass-alpha: var(--optical-opacityHigh);
+  --glass-blur: var(--optical-blurLow);
+  --glass-brightness: var(--optical-brightnessNormal);
+}
+.glass--intensity-base   {
+  --glass-alpha: var(--optical-opacityMedium);
+  --glass-blur: var(--optical-blurMedium);
+  --glass-brightness: var(--optical-brightnessNormal);
+}
+.glass--intensity-strong {
+  --glass-alpha: var(--optical-opacityLow);
+  --glass-blur: var(--optical-blurDeep);
+  --glass-brightness: var(--optical-brightnessHigh);
+}
+
+/* Interactive overlay — inset shadow paints above bg, below content */
+.glass--interactive {
+  cursor: pointer;
+  transition: box-shadow var(--motion-durationShort) ease;
+  box-shadow: inset 0 0 0 9999px rgb(from var(--colors-primary) r g b / 0);
+}
+.glass--interactive:hover {
+  box-shadow: inset 0 0 0 9999px rgb(from var(--colors-primary) r g b / var(--optical-opacityHigh));
+}
+.glass--interactive:active,
+.glass--pressed {
+  box-shadow: inset 0 0 0 9999px rgb(from var(--colors-primary) r g b / var(--optical-opacityMedium));
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background-color: var(--colors-bgSurface);
+    border-color: var(--colors-strokeDefault);
+    border-top-color: var(--colors-strokeStrong);
+    border-bottom-color: var(--colors-strokeDefault);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background-color: var(--colors-bgSurface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

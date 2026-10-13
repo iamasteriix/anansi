@@ -1,6 +1,6 @@
-export { View, GlassView, } from './view';
+export { View, } from './view';
 export { AppView } from './app-view';
-// export { Button, GlassButton, } from './button';
+export { Button, } from './button';
 // export { TextField, GlassTextField } from './text-field';
 // export { Text } from './text';
 // export { Badge } from './badge';

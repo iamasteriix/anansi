@@ -1,94 +1,154 @@
 import type { ReactNode } from 'react';
-import type { ButtonProps, GlassButtonProps } from './types';
-import { Pressable } from '../pressable';
-import { getContentOrdering, resolveBaseVariants, resolveGlassVariants, } from './utils';
-import { ButtonBadge, ButtonIcon, ButtonSlot } from './slots';
-import styles from './base.module.css';
+import type {
+  ElementChildren, PressElementProps, TsElevation, TsFill, TsGlass, TsIntent, TsJustify,
+  TsRadius,
+} from '../@core';
+import type { IconProps } from '../icon';
+import type { BadgeProps } from '../badge';
+import {
+  createSlot, PressElement, slotProp, SlotScopeProvider, useSlots, ViewElement,
+} from '../@core';
+import { Icon } from '../icon';
+import { Badge } from '../badge';
+import styles from './style.module.css';
+import glassStyles from '../assets/styles/glass.module.css';
 
 
-/**
- * Handles static children and the case where they are a function with render props,
- * whatever that means.
- */
-const renderChildren = (children: ButtonProps['children']) => {
-  const resolve = (resolvedNode: ReactNode) => {
-    const { leading, trailing, content, } = getContentOrdering(resolvedNode);
-    return (
-      <>
-        {
-          leading.length > 0 &&
-          <span className={ styles.button__slot }>{ leading }</span>
-        }
-        <span className={ styles.button__content }>{ content }</span>
-        {
-          trailing.length > 0 &&
-          <span className={ styles.button__slot }>{ trailing }</span>
-        }
-      </>
-    );
+
+// Types ————————————————————————————————————————————————————————————————————————————————
+type ButtonSlotAlignment = 'start' | 'end';
+type ButtonSlotProps = {
+  alignment?: ButtonSlotAlignment;
+};
+
+export type ButtonVariant = {
+  fill?: TsFill;
+  intent?: TsIntent;
+  fit?: 'fluid-1' | 'fluid-2' | 'fluid-3' | 'fluid-4' | 'fluid-5' | 'fluid-6';
+  elevation?: TsElevation;
+  shadow?: 'auto' | 'none',
+  size?: 'sm' | 'md' | 'lg';
+  radius?: TsRadius;
+  justify?: TsJustify;
+  glass?: boolean | TsGlass;
+};
+
+export type ButtonProps = PressElementProps & {
+  variant?: ButtonVariant;
+};
+
+
+// Utils ————————————————————————————————————————————————————————————————————————————————
+const resolveVariants = (variant: ButtonVariant | undefined): string => {
+  const base = [
+    styles.button,
+    variant?.elevation && styles[`button--elevation-${variant.elevation}`],
+    variant?.shadow === 'auto' && variant?.elevation ? styles[`button--shadow-${variant?.elevation}`] : undefined,
+    styles[`button--size-${variant?.size ?? 'md'}`],
+    variant?.radius && styles[`button--radius-${variant.radius}`],
+    styles[`button--justify-${variant?.justify ?? 'center'}`],
+  ];
+
+  if (variant?.glass) {
+    const options = variant.glass === true ? {} : variant.glass;
+    return [
+      ...base,
+      styles['glass-button'],
+      glassStyles[`glass--tint-${options.tint ?? variant.intent ?? 'raised'}`],
+      glassStyles[`glass--intensity-${options.intensity ?? 'base'}`],
+    ].filter(Boolean).join(' ');
   }
 
-  return typeof children === 'function'
-    ? (state: Parameters<Extract<ButtonProps['children'], Function>>[0]) => resolve(children(state))
-    : resolve(children);
+  return [
+    ...base,
+    styles[`button--fill-${variant?.fill ?? 'filled'}`],
+    styles[`button--intent-${variant?.intent ?? 'primary'}`],
+  ].filter(Boolean).join(' ');
+};
+
+
+// Core —————————————————————————————————————————————————————————————————————————————————
+const ButtonLayout = ({ children }: { children: ReactNode; }) => {
+  const slots = useSlots(children, ['slot']);
+  const startSlot: ElementChildren = [];
+  const endSlot: ElementChildren = [];
+  for (const element of slots.slot) {
+    const alignment = slotProp<ButtonSlotAlignment>(element, 'alignment') ?? 'start';
+    (alignment === 'end' ?  endSlot : startSlot).push(element);
+  }
+  return (
+    <>
+      { startSlot.length > 0 &&
+        <ViewElement classes={ styles.button__slot }>{ startSlot }</ViewElement>
+      }
+      <ViewElement classes={ styles.button__slot }>{ slots.default }</ViewElement>
+      { endSlot.length > 0 &&
+        <ViewElement classes={ styles.button__slot }>{ endSlot }</ViewElement>
+      }
+    </>
+  );
 }
 
 
-/**
- * Unified foundation for both regular and glass buttons
- */
-const ButtonBase = ({
-  children, id, theme, a11y, style, testID, ref,
-  disabled,
-  className,
-}: ButtonProps & {
-  className: string;
-}) => {
+export const Button = ({
+  children, id, variant, theme, style, a11y, testID, ref,
+  onPress, onPressIn, onPressOut, onPressMove, onLongPress, onHoverIn, onHoverOut,
+  delayLongPress, disabled,
+}: ButtonProps) => {
   return (
-    <span className={ className }>
-      <Pressable
-        id={ id }
+    <SlotScopeProvider value='Button'>
+      <PressElement
+        onPress={ onPress }
+        onPressIn={ onPressIn }
+        onPressOut={ onPressOut }
+        onPressMove={ onPressMove }
+        onLongPress={ onLongPress }
+        onHoverIn={ onHoverIn }
+        onHoverOut={ onHoverOut }
+        delayLongPress={ delayLongPress }
         disabled={ disabled }
+        classes={ resolveVariants(variant) }
+        id={ id }
         theme={ theme }
         style={ style }
         a11y={ a11y }
         testID={ testID }
         ref={ ref }
       >
-        { renderChildren(children) }
-      </Pressable>
-    </span>
+        { state => (
+            <ButtonLayout>
+              { typeof children === 'function' ? children(state) : children }
+            </ButtonLayout>
+          )
+        }
+      </PressElement>
+    </SlotScopeProvider>
   );
 }
 
 
-/**
- * I'm only writing a bunch of comments above the functions to make it easy to mentally
- * demarcate whatever is going on in this file.
- */
-export const Button = ({ variant, ...rest }: ButtonProps) => (
-  <ButtonBase
-    { ...rest }
-    className={ resolveBaseVariants(variant) }
-  />
-);
+// Slots ————————————————————————————————————————————————————————————————————————————————
+const ButtonIcon = createSlot<
+  typeof Icon,
+  IconProps,
+  ButtonSlotProps
+>(Icon, {
+  slotName: 'slot',
+  parentName: 'Button',
+  slotProps: ['alignment'],
+});
 
 
-/**
- * And now I feel like I'm going to do this for all the other files that separate the
- * regular from the glass variants.
- */
-export const GlassButton = ({ variant, ...rest }: GlassButtonProps) => (
-  <ButtonBase
-    { ...rest }
-    className={ resolveGlassVariants(variant) }
-  />
-);
+const ButtonBadge = createSlot<
+  typeof Badge,
+  BadgeProps,
+  ButtonSlotProps
+>(Badge, {
+  slotName: 'slot',
+  parentName: 'Button',
+  slotProps: ['alignment'],
+});
 
 
 Button.Icon = ButtonIcon;
 Button.Badge = ButtonBadge;
-Button.Slot = ButtonSlot;
-GlassButton.Icon = ButtonIcon;
-GlassButton.Badge = ButtonBadge;
-GlassButton.Slot = ButtonSlot;

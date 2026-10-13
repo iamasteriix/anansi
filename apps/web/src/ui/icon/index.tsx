@@ -1,8 +1,33 @@
-import type { IconProps, IconVariant } from './types';
-import { resolveA11y, useMediaQuery } from '../@core';
+import type { ComponentType, Ref } from 'react';
+import type { ElementProps } from '../@core';
+import { ViewElement } from '../@core';
 import styles from './style.module.css';
 
 
+// Types ————————————————————————————————————————————————————————————————————————————————
+type IconComponentProps = {
+  viewBox?: string;
+  size?: string;
+  variant?: 'monochrome' | 'duotone';
+  fill?: string | string[];
+  solid?: boolean;
+};
+
+export type IconVariant = {
+  name?: 'monochrome' | 'duotone';
+  size?: 'xsm' | 'sm' | 'md' | 'lg';
+  solid?: boolean;
+};
+
+export type IconProps = Omit<ElementProps, 'children'> & {
+  icon: ComponentType<IconComponentProps>,
+  variant?: IconVariant;
+  children?: never;
+  ref?: Ref<HTMLDivElement>;
+};
+
+
+// Core —————————————————————————————————————————————————————————————————————————————————
 const size_map: Record<NonNullable<IconVariant['size']>, string> = {
   xsm: 'var(--typography-textXs)',
   sm: 'var(--typography-textSm)',
@@ -19,7 +44,7 @@ const default_a11y = { hidden: true, };
 
 
 export const Icon = ({
-  id, theme, style, testID,
+  id, theme, style, testID, ref,
   variant = default_variant,
   a11y = default_a11y,
   icon: IconComponent,
@@ -27,18 +52,16 @@ export const Icon = ({
   
   const fontSize = size_map[variant.size || 'md'];
   const fill = variant.name === 'duotone' ? ['currentColor', 'var(--colors-accent)'] : 'currentColor';
-  
-  const { cssProperties, } = useMediaQuery(theme, style);
-  const accessibility = resolveA11y(a11y);
 
   return (
-    <span
-      className={ styles.icon }
-      style={ cssProperties }
+    <ViewElement
+      classes={ styles.icon }
+      theme={ theme }
+      style={ style }
+      a11y={ a11y }
+      ref={ ref }
+      testID={ testID }
       id={ id }
-      data-testid={ testID }
-      data-variant={ variant.name }
-      { ...accessibility }
     >
       <IconComponent
         viewBox='0 0 24 24'
@@ -47,6 +70,6 @@ export const Icon = ({
         variant={ variant.name }
         solid={ variant.solid }
       />
-    </span>
+    </ViewElement>
   );
 }

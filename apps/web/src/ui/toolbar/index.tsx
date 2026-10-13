@@ -4,6 +4,7 @@ import { createSlot, slotProp, SlotScopeProvider, useSlots, ViewElement, } from 
 import styles from './style.module.css';
 
 
+// Types ————————————————————————————————————————————————————————————————————————————————
 export type ToolbarVariant = {
   orientation?: 'horizontal' | 'vertical';
   size?: 'xsm' | 'sm' | 'md' | 'lg' | 'xl';
@@ -25,6 +26,7 @@ export type ToolbarProps = ElementProps & {
 };
 
 
+// Utils ————————————————————————————————————————————————————————————————————————————————
 const resolveVariants = (variant?: ToolbarVariant) => {
   const classes: (string | undefined)[] = [
     styles.toolbar,
@@ -36,7 +38,7 @@ const resolveVariants = (variant?: ToolbarVariant) => {
   const offset = variant?.anchorOffset;
   const positionProp = edge ? { [edge]: offset || 0, } : undefined;
   return ({
-    cssClass: classes.filter(Boolean).join(' '),
+    cssClasses: classes.filter(Boolean).join(' '),
     positionProp,
   });
 };
@@ -45,14 +47,15 @@ const resolveVariants = (variant?: ToolbarVariant) => {
 const ToolbarSlotContent = ({ children, }: ToolbarSlotContentProps) => <>{ children }</>;
 
 
+// Core —————————————————————————————————————————————————————————————————————————————————
 export const Toolbar = ({
   children, id, theme, style, a11y, variant, testID, ref,
 }: ToolbarProps) => {
   
   const slots = useSlots(children, ['Slot']);
-  const leadingSlot = slots.Slot.filter(element => slotProp(element, 'alignment') === 'start');
-  const trailingSlot = slots.Slot.filter(element => slotProp(element, 'alignment') === 'end');
-    const content = [
+  const startSlot = slots.Slot.filter(element => slotProp(element, 'alignment') === 'start');
+  const endSlot = slots.Slot.filter(element => slotProp(element, 'alignment') === 'end');
+  const content = [
     ...slots.default,
     ...slots.Slot.filter(element => {
       const alignment = slotProp(element, 'alignment');
@@ -60,12 +63,12 @@ export const Toolbar = ({
     }),
   ];
 
-  const { cssClass, positionProp, } = resolveVariants(variant);
+  const { cssClasses, positionProp, } = resolveVariants(variant);
 
   return (
     <SlotScopeProvider value='Toolbar'>
       <ViewElement
-        classes={ cssClass }
+        classes={ cssClasses }
         theme={{ ...positionProp, ...theme, }}
         style={ style }
         a11y={ a11y }
@@ -73,12 +76,12 @@ export const Toolbar = ({
         testID={ testID }
         id={ id }
       >
-        { leadingSlot.length > 0 &&
-          <ViewElement classes={ styles['toolbar--leading'] }>{ leadingSlot }</ViewElement>
+        { startSlot.length > 0 &&
+          <ViewElement classes={ styles['toolbar__slot--start'] }>{ startSlot }</ViewElement>
         }
-        <ViewElement classes={ styles['toolbar--content'] }>{ content }</ViewElement>
-        { trailingSlot.length > 0 &&
-          <ViewElement classes={ styles['toolbar--trailing'] }>{ trailingSlot }</ViewElement>
+        <ViewElement classes={ styles['toolbar__content'] }>{ content }</ViewElement>
+        { endSlot.length > 0 &&
+          <ViewElement classes={ styles['toolbar__slot--end'] }>{ endSlot }</ViewElement>
         }
       </ViewElement>
     </SlotScopeProvider>
@@ -86,7 +89,12 @@ export const Toolbar = ({
 };
 
 
-Toolbar.Slot = createSlot<typeof ToolbarSlotContent, ToolbarSlotContentProps, ToolbarSlotProps>(
+// Slots ————————————————————————————————————————————————————————————————————————————————
+Toolbar.Slot = createSlot<
+  typeof ToolbarSlotContent,
+  ToolbarSlotContentProps,
+  ToolbarSlotProps
+>(
   ToolbarSlotContent, {
     slotName: 'Slot',
     parentName: 'Toolbar',

@@ -9,20 +9,20 @@
 .page-view--safe-start  { padding-inline-start: env(safe-area-inset-left, 0px); }
 .page-view--safe-end    { padding-inline-end:   env(safe-area-inset-right, 0px); }
 
-.region-top,
-.region-bottom { flex: 0 0 auto; }
+.page-view__slot--top,
+.page-view__slot--bottom { flex: 0 0 auto; }
 
-.region-middle {
+.page-view__content--middle {
   flex: 1 1 auto;
   display: flex;
   flex-direction: row;
   min-block-size: 0;
 }
 
-.region-start,
-.region-end { flex: 0 0 auto; }
+.page-view__slot--start,
+.page-view__slot--end { flex: 0 0 auto; }
 
-.region-body {
+.page-view__content--body {
   flex: 1 1 auto;
   min-inline-size: 0;
   min-block-size: 0;

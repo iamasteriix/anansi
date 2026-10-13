@@ -56,7 +56,6 @@ export const PageView = ({
 }: PageViewProps) => {
 
   const slots = useSlots(children, ['Toolbar']);
-
   const byEdge: Record<PageViewInset, ReactElement[]> = {
     top: [],
     bottom: [],
@@ -68,10 +67,12 @@ export const PageView = ({
     byEdge[alignment].push(element);
   }
 
+  const cssClasses = resolveClasses(insets);
+
   return (
     <SlotScopeProvider value='PageView'>
       <ViewElement
-        classes={ resolveClasses(insets) }
+        classes={ cssClasses }
         theme={ theme }
         style={ style }
         a11y={ a11y }
@@ -80,29 +81,34 @@ export const PageView = ({
         id={ id }
       >
         { byEdge.top.length > 0 &&
-          <ViewElement classes={ styles['region-top'] }>{ byEdge.top }</ViewElement>
+          <ViewElement classes={ styles['page-view__slot--top'] }>{ byEdge.top }</ViewElement>
         }
 
-        <ViewElement classes={ styles['region-middle'] }>
+        <ViewElement classes={ styles['page-view__content--middle'] }>
           { byEdge.start.length > 0 &&
-            <ViewElement classes={ styles['region-start'] }>{ byEdge.start }</ViewElement>
+            <ViewElement classes={ styles['page-view__slot--start'] }>{ byEdge.start }</ViewElement>
           }
-          <ViewElement classes={ styles['region-body'] }>{ slots.default }</ViewElement>
+          <ViewElement classes={ styles['page-view__content--body'] }>{ slots.default }</ViewElement>
           { byEdge.end.length > 0 &&
-            <ViewElement classes={ styles['region-end'] }>{ byEdge.end }</ViewElement>
+            <ViewElement classes={ styles['page-view__slot--end'] }>{ byEdge.end }</ViewElement>
           }
         </ViewElement>
 
         { byEdge.bottom.length > 0 &&
-          <ViewElement classes={ styles['region-bottom'] }>{ byEdge.bottom }</ViewElement>
+          <ViewElement classes={ styles['page-view__slot--bottom'] }>{ byEdge.bottom }</ViewElement>
         }
       </ViewElement>
     </SlotScopeProvider>
   );
-};
+}
 
 
-PageView.Toolbar = createSlot<typeof Toolbar, PageViewSlotProps, PageViewSlotProps>(
+// Slots ————————————————————————————————————————————————————————————————————————————————
+PageView.Toolbar = createSlot<
+  typeof Toolbar,
+  PageViewSlotProps,
+  PageViewSlotProps
+>(
   Toolbar, {
     slotName: 'Toolbar',
     parentName: 'PageView',

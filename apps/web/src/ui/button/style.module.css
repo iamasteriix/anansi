@@ -1,0 +1,183 @@
+/* Base ------------------------------------------------------------------------------ */
+.button {
+  --btn-bg: transparent;
+  --btn-fg: var(--colors-textPrimary);
+  --btn-border: transparent;
+  --btn-justify: center;
+  --btn-gap: var(--size-fixed2);
+  --btn-pad-block: var(--size-relative2);
+  --btn-pad-inline: var(--size-relative2);
+  --btn-font: var(--typography-textBase);
+  --glass-tone: var(--colors-bgRaised);
+  --glass-alpha: var(--optical-opacityHigh);
+  --glass-blur: var(--optical-blurMedium);
+  --glass-saturate: var(--optical-saturateSubtle);
+  --glass-brightness: var(--optical-brightnessNormal);
+
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  inline-size: min-content;
+  position: relative;
+  box-sizing: border-box;
+  padding-block: var(--btn-pad-block);
+  padding-inline: var(--btn-pad-inline);
+  gap: var(--btn-gap);
+  background-color: var(--btn-bg);
+  color: var(--btn-fg);
+  border-style: solid;
+  border-width: 0;
+  border-color: var(--btn-border);
+  border-radius: var(--shape-radiusMd);
+  font-family: var(--typography-fontBody);
+  font-size: var(--btn-font);
+  font-weight: var(--typography-weightMedium);
+  line-height: var(--typography-leadingCompact);
+  transition: filter 120ms ease, opacity 120ms ease;
+}
+
+.button:not([aria-disabled='true']):hover  { filter: brightness(1.12); }
+.button:not([aria-disabled='true']):active { filter: brightness(.9); }
+
+.button:focus-visible {
+  outline: 1px solid var(--colors-info);
+  outline-offset: 1px;
+}
+
+/* Fill × Intent ---------------------------------------------------------------------- */
+/* Filled */
+.button--fill-filled.button--intent-primary   { --btn-bg: var(--colors-primary);   --btn-fg: var(--colors-textPrimary); }
+.button--fill-filled.button--intent-secondary { --btn-bg: var(--colors-secondary); --btn-fg: var(--colors-textPrimary); }
+.button--fill-filled.button--intent-accent    { --btn-bg: var(--colors-accent);    --btn-fg: var(--colors-textInverse); }
+.button--fill-filled.button--intent-info      { --btn-bg: var(--colors-info);      --btn-fg: var(--colors-textPrimary); }
+.button--fill-filled.button--intent-success   { --btn-bg: var(--colors-success);   --btn-fg: var(--colors-textPrimary); }
+.button--fill-filled.button--intent-warning   { --btn-bg: var(--colors-warning);   --btn-fg: var(--colors-textPrimary); }
+.button--fill-filled.button--intent-error     { --btn-bg: var(--colors-error);     --btn-fg: var(--colors-textPrimary); }
+
+/* Tonal */
+.button--fill-tonal.button--intent-primary   { --btn-bg: rgb(from var(--colors-primary)   r g b / .15); --btn-fg: var(--colors-primary); }
+.button--fill-tonal.button--intent-secondary { --btn-bg: rgb(from var(--colors-secondary) r g b / .15); --btn-fg: var(--colors-secondary); }
+.button--fill-tonal.button--intent-accent    { --btn-bg: rgb(from var(--colors-accent)    r g b / .15); --btn-fg: var(--colors-accent); }
+.button--fill-tonal.button--intent-info      { --btn-bg: rgb(from var(--colors-info)      r g b / .15); --btn-fg: var(--colors-info); }
+.button--fill-tonal.button--intent-success   { --btn-bg: rgb(from var(--colors-success)   r g b / .15); --btn-fg: var(--colors-success); }
+.button--fill-tonal.button--intent-warning   { --btn-bg: rgb(from var(--colors-warning)   r g b / .15); --btn-fg: var(--colors-warning); }
+.button--fill-tonal.button--intent-error     { --btn-bg: rgb(from var(--colors-error)     r g b / .15); --btn-fg: var(--colors-error); }
+
+/* Outlined */
+.button--fill-outlined.button--intent-primary   { border-width: 1px; --btn-border: var(--colors-primary);       --btn-fg: var(--colors-primary); }
+.button--fill-outlined.button--intent-secondary { border-width: 1px; --btn-border: var(--colors-strokeDefault); --btn-fg: var(--colors-secondary); }
+.button--fill-outlined.button--intent-accent    { border-width: 1px; --btn-border: var(--colors-accent);        --btn-fg: var(--colors-accent); }
+.button--fill-outlined.button--intent-info      { border-width: 1px; --btn-border: var(--colors-info);          --btn-fg: var(--colors-info); }
+.button--fill-outlined.button--intent-success   { border-width: 1px; --btn-border: var(--colors-success);       --btn-fg: var(--colors-success); }
+.button--fill-outlined.button--intent-warning   { border-width: 1px; --btn-border: var(--colors-warning);       --btn-fg: var(--colors-warning); }
+.button--fill-outlined.button--intent-error     { border-width: 1px; --btn-border: var(--colors-error);         --btn-fg: var(--colors-error); }
+
+/* Ghost */
+.button--fill-ghost.button--intent-primary   { --btn-fg: var(--colors-primary); }
+.button--fill-ghost.button--intent-secondary { --btn-fg: var(--colors-secondary); }
+.button--fill-ghost.button--intent-accent    { --btn-fg: var(--colors-accent); }
+.button--fill-ghost.button--intent-info      { --btn-fg: var(--colors-info); }
+.button--fill-ghost.button--intent-success   { --btn-fg: var(--colors-success); }
+.button--fill-ghost.button--intent-warning   { --btn-fg: var(--colors-warning); }
+.button--fill-ghost.button--intent-error     { --btn-fg: var(--colors-error); }
+
+/* Fit ------------------------------------------------------------------------------- */
+.button--fit-fluid-1     { inline-size: var(--size-fluid1); }
+.button--fit-fluid-2     { inline-size: var(--size-fluid2); }
+.button--fit-fluid-3     { inline-size: var(--size-fluid3); }
+.button--fit-fluid-4     { inline-size: var(--size-fluid4); }
+.button--fit-fluid-5     { inline-size: var(--size-fluid5); }
+.button--fit-fluid-6     { inline-size: var(--size-fluid6); }
+
+/* Size ------------------------------------------------------------------------------ */
+.button--size-sm { --btn-pad-block: var(--size-relative1); --btn-pad-inline: var(--size-relative1); --btn-font: var(--typography-textSm);   --btn-gap: var(--size-fixed2); }
+.button--size-md { --btn-pad-block: var(--size-relative2); --btn-pad-inline: var(--size-relative2); --btn-font: var(--typography-textBase); --btn-gap: var(--size-fixed2); }
+.button--size-lg { --btn-pad-block: var(--size-relative6); --btn-pad-inline: var(--size-relative6); --btn-font: var(--typography-textMd);   --btn-gap: var(--size-fixed2); }
+
+/* Elevation ------------------------------------------------------------------------- */
+.button--elevation-base   { z-index: var(--elevation-levelBase); }
+.button--elevation-low    { z-index: var(--elevation-levelLow); }
+.button--elevation-raised { z-index: var(--elevation-levelRaised); }
+.button--elevation-medium { z-index: var(--elevation-levelMedium); }
+.button--elevation-high   { z-index: var(--elevation-levelHigh); }
+.button--elevation-max    { z-index: var(--elevation-levelMax); }
+
+/* Shadow ------------------------------------------------------------------------- */
+.button--shadow-base   { box-shadow: var(--elevation-boxShadowBase); }
+.button--shadow-low    { box-shadow: var(--elevation-boxShadowLow); }
+.button--shadow-raised { box-shadow: var(--elevation-boxShadowRaised); }
+.button--shadow-medium { box-shadow: var(--elevation-boxShadowMedium); }
+.button--shadow-high   { box-shadow: var(--elevation-boxShadowHigh); }
+.button--shadow-max    { box-shadow: var(--elevation-boxShadowMax); }
+
+/* Radius ---------------------------------------------------------------------------- */
+.button--radius-sm   { border-radius: var(--shape-radiusSm); }
+.button--radius-md   { border-radius: var(--shape-radiusMd); }
+.button--radius-lg   { border-radius: var(--shape-radiusLg); }
+.button--radius-xl   { border-radius: var(--shape-radiusXl); }
+.button--radius-2xl  { border-radius: var(--shape-radius2xl); }
+.button--radius-full { border-radius: var(--shape-radiusFull); }
+
+/* Justify --------------------------------------------------------------------------- */
+.button--justify-start         { --btn-justify: flex-start; }
+.button--justify-center        { --btn-justify: center; }
+.button--justify-end           { --btn-justify: flex-end; }
+.button--justify-space-between { --btn-justify: space-between; }
+.button--justify-space-around  { --btn-justify: space-around; }
+.button--justify-stretch       { --btn-justify: stretch; }
+
+/* Slot tracks ----------------------------------------------------------------------- */
+.button__slot--start,
+.button__slot--fill,
+.button__slot--end {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--btn-gap);
+  min-inline-size: 0;
+}
+
+.button__slot--start { flex: 0 0 auto; }
+
+.button__slot--fill {
+  flex: 1 1 auto;
+  justify-content: var(--btn-justify, center);
+}
+
+.button__slot--end {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+/* -- Glass -------------------------------------------------------------------------- */
+.button.glass-button {
+  background-color: rgb(var(--glass-tone) / var(--glass-alpha));
+  backdrop-filter:
+    blur(var(--glass-blur))
+    saturate(var(--glass-saturate, var(--optical-saturateSubtle)))
+    brightness(var(--glass-brightness, var(--optical-brightnessNormal)));
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur))
+    saturate(var(--glass-saturate, var(--optical-saturateSubtle)))
+    brightness(var(--glass-brightness, var(--optical-brightnessNormal)));
+
+  color: var(--colors-textPrimary);
+  border-width: var(--shape-strokeMedium);
+  border-color: var(--colors-strokeSubtle);
+  border-top-color: var(--colors-strokeStrong);
+  border-bottom-width: var(--shape-strokeLight);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .button.glass-button {
+    background-color: var(--colors-bgSurface);
+    border-color: var(--colors-strokeDefault);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .button.glass-button {
+    background-color: var(--colors-bgSurface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

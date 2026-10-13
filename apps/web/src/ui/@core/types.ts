@@ -1,4 +1,6 @@
-import type { CSSProperties, PointerEvent, ReactElement, ReactNode, Ref, SyntheticEvent } from 'react';
+import type {
+  CSSProperties, PointerEvent, ReactElement, ReactNode, Ref, SyntheticEvent,
+} from 'react';
 import { tokens } from './tokens';
 
 
@@ -115,13 +117,18 @@ export type TSProperties = {
   borderBottomWidth?: ResponsiveProp<TsStrokeWeight>;
   borderLeftWidth?: ResponsiveProp<TsStrokeWeight>;
   borderRadius?: ResponsiveProp<TsRadius>;
-  borderColor?: TsIntent | TsStrokeColor;
+  borderColor?: TsStrokeColor;
   fontFamily?: TsTypeface;
   fontSize?: ResponsiveProp<TsFontSize>;
   color?: TsColor;
   fontWeight?: ResponsiveProp<TsFontWeight>;
   lineHeight?: ResponsiveProp<TsTracking>;
   letterSpacing?: ResponsiveProp<TsTracking>;
+};
+export type TsGlass = {
+  intensity?: 'faint' | 'subtle' | 'base' | 'strong';
+  tint?: TsIntent | TsSurface;
+  interactive?: boolean;
 };
 
 
@@ -257,7 +264,6 @@ export type ElementProps = {
 };
 
 export type ViewElementProps = ElementProps & {
-  classes?: string;
   ref?: Ref<HTMLDivElement>;
 };
 
@@ -279,7 +285,6 @@ export type PressElementProps = Omit<ElementProps, 'children'> & {
   delayLongPress?: number;
   disabled?: boolean;
   children?: ElementChildren | ((state: PressElementState) => ElementChildren);
-  classes?: string;
   ref?: Ref<HTMLDivElement>;
 };
 

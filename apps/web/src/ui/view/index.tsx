@@ -1,23 +1,16 @@
 import type { Ref } from 'react';
-import type { ElementProps, } from '../@core';
-import type { TsElevation, TsIntent, TsSurface, } from '../@core';
-import { ViewElement } from '../@core';
-import baseStyles from './base.module.css';
-import glassStyles from './glass.module.css';
+import type { ElementProps, TsElevation, TsGlass, TsIntent, TsSurface, } from '../@core';
+import { resolveGlassStyle, ViewElement } from '../@core';
+import styles from './style.module.css';
 
 
+// Types ————————————————————————————————————————————————————————————————————————————————
 export type ViewVariant = {
   fill?: TsSurface;
   elevation?: TsElevation;
   outline?: TsIntent;
   shadow?: 'auto' | 'none';
-};
-
-export type GlassViewVariant = {
-  tone?: 'neutral' | 'accent';
-  intensity?: 'faint' | 'subtle' | 'base' | 'strong';
-  elevation?: TsElevation;
-  blur?: 'sm' | 'md' | 'lg';
+  glass?: boolean | TsGlass;
 };
 
 export type ViewProps = ElementProps & {
@@ -25,50 +18,36 @@ export type ViewProps = ElementProps & {
   ref?: Ref<HTMLDivElement>;
 };
 
-export type GlassViewProps = ElementProps & {
-  variant?: GlassViewVariant;
-  ref?: Ref<HTMLDivElement>;
-};
 
-
-export const resolveBaseVariants = (variant: ViewVariant | undefined): string => {
+// Utils ————————————————————————————————————————————————————————————————————————————————
+export const resolveVariants = (variant: ViewVariant | undefined): string => {
   const shadow = variant?.shadow === 'none' ? 'none' : (variant?.elevation || 'base');
-  const classes: (string | undefined)[] = [
-    baseStyles.view,
-    variant?.fill && baseStyles[`view--fill-${variant.fill}`],
-    variant?.elevation && baseStyles[`view--elevation-${variant.elevation}`],
-    variant?.outline && baseStyles[`view--outline-${variant.outline}`],
-    baseStyles[`view--shadow-${shadow}`],
-  ];
-  return classes.filter(Boolean).join(' ');
+  return [
+    styles.view,
+    variant?.fill && styles[`view--fill-${variant.fill}`],
+    variant?.elevation && styles[`view--elevation-${variant.elevation}`],
+    variant?.outline && styles[`view--outline-${variant.outline}`],
+    styles[`view--shadow-${shadow}`],
+    resolveGlassStyle(variant?.glass),
+  ].filter(Boolean).join(' ');
 }
 
 
-export const resolveGlassVariants = (variant: GlassViewVariant | undefined): string => {
-  const classes: (string | undefined)[] = [
-    glassStyles['glass-view'],
-    variant?.tone ? glassStyles[`glass-view--tone-${variant.tone}`] : glassStyles['glass-view--tone-neutral'],
-    variant?.intensity && glassStyles[`glass-view--intensity-${variant.intensity}`],
-    variant?.elevation && glassStyles[`glass-view--elevation-${variant.elevation}`],
-    variant?.blur && glassStyles[`glass-view--blur-${variant.blur}`],
-  ];
-  return classes.filter(Boolean).join(' ');
-}
-
-
-export const View = ({ variant, ...rest }: ViewProps) => {
+// Core —————————————————————————————————————————————————————————————————————————————————
+export const View = ({
+  children, id,  variant, theme, style, a11y, testID, ref,
+}: ViewProps) => {
   return (
     <ViewElement
-      { ...rest }
-      classes={ resolveBaseVariants(variant) }
-    />
+      classes={ resolveVariants(variant) }
+      theme={ theme }
+      style={ style }
+      id={ id }
+      testID={ testID }
+      a11y={ a11y }
+      ref={ ref }
+    >
+      { children }
+    </ViewElement>
   );
 }
-
-
-export const GlassView = ({ variant, ...rest }: GlassViewProps) => (
-  <ViewElement
-    { ...rest }
-    classes={ resolveGlassVariants(variant) }
-  />
-);

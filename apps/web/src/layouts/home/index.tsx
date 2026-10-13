@@ -1,5 +1,6 @@
-import { Image, PageView, View, } from '@/ui';
+import { Button, Image, PageView, View, } from '@/ui';
 import { ThemeSheet } from '@/ui/@core';
+import { Ellipsis, Menu } from '@/ui/@icons';
 import images from '@/assets/images';
 
 
@@ -12,11 +13,19 @@ export const Home = () => {
         theme={ theme.header }
       >
         <PageView.Toolbar.Slot alignment='start'>
-          <Image
-            src={ images.tuesday_logo }
-            theme={ theme.logo }
-            alt='Tuesday logo'
-          />
+          <Button variant={{ radius: '2xl', glass: { intensity: 'base', interactive: true, }, }}>
+            <Button.Icon icon={ Menu }/>
+          </Button>
+        </PageView.Toolbar.Slot>
+        <Image
+          src={ images.tuesday_logo }
+          theme={ theme.logo }
+          alt='Tuesday logo'
+        />
+        <PageView.Toolbar.Slot alignment='end'>
+          <Button variant={{ radius: '2xl', glass: { intensity: 'base', interactive: true, }, }}>
+            <Button.Icon icon={ Ellipsis }/>
+          </Button>
         </PageView.Toolbar.Slot>
       </PageView.Toolbar>
 
@@ -39,6 +48,7 @@ const theme = ThemeSheet.create({
     flex: 'auto',
   },
   logo: {
-    width: 'relative-6'
+    width: 'relative-6',
+    height: 'relative-6',
   },
 });
