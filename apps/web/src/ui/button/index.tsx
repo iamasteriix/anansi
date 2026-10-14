@@ -10,8 +10,8 @@ import {
 } from '../@core';
 import { Icon } from '../icon';
 import { Badge } from '../badge';
+import { styles as glassStyles } from '../@core';
 import styles from './style.module.css';
-import glassStyles from '../assets/styles/glass.module.css';
 
 
 

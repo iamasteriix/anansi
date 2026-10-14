@@ -1,6 +1,7 @@
 export type {
   ThemeTokensType, TSProperties, TsElevation, TsColor, TsTypeface, TsFill, TsIntent,
   TsRadius, TsSurface, TsJustify, TsShadow, TsAlign, TsSize, TsPosition, TsGlass,
+  VariantNamespaces,
   StorageAdapter, StorageTopics,
   ElementChildren, ElementProps, ViewElementProps, PressElementProps,
   LayoutEvent, PressEvent, TargetEvent, PressElementState,
@@ -16,3 +17,6 @@ export {
   ViewElement, PressElement, useSlots, createSlot, slotProp, SlotScopeProvider,
   resolveGlassStyle,
 } from './ui';
+
+import styles from './style.module.css';
+export { styles };

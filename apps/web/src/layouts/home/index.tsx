@@ -1,5 +1,4 @@
-import { Button, Image, PageView, View, } from '@/ui';
-import { ThemeSheet } from '@/ui/@core';
+import { Button, Image, PageView, ThemeSheet, View, } from '@/ui';
 import { Ellipsis, Menu } from '@/ui/@icons';
 import images from '@/assets/images';
 
@@ -13,7 +12,7 @@ export const Home = () => {
         theme={ theme.header }
       >
         <PageView.Toolbar.Slot alignment='start'>
-          <Button variant={{ radius: '2xl', glass: { intensity: 'base', interactive: true, }, }}>
+          <Button variant={ variants.button.header }>
             <Button.Icon icon={ Menu }/>
           </Button>
         </PageView.Toolbar.Slot>
@@ -23,7 +22,7 @@ export const Home = () => {
           alt='Tuesday logo'
         />
         <PageView.Toolbar.Slot alignment='end'>
-          <Button variant={{ radius: '2xl', glass: { intensity: 'base', interactive: true, }, }}>
+          <Button variant={ variants.button.header }>
             <Button.Icon icon={ Ellipsis }/>
           </Button>
         </PageView.Toolbar.Slot>
@@ -44,11 +43,19 @@ const theme = ThemeSheet.create({
     padding: 'relative-3',
     paddingVertical: 'relative-2',
   },
-  content: {
-    flex: 'auto',
-  },
+  content: { flex: 'auto', },
   logo: {
     width: 'relative-6',
     height: 'relative-6',
+  },
+});
+
+
+const variants = ThemeSheet.variants.lucidMoonsong({
+  button: {
+    header: {
+      radius: '2xl',
+      glass: { intensity: 'base', interactive: true, },
+    },
   },
 });

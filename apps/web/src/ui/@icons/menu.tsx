@@ -3,7 +3,7 @@ import { createIcon } from './create-icon';
 
 
 const Icon = createIcon({
-  paths: [{ d: 'M5 8.25a.75.75 0 0 0 0 1.5h14a.75.75 0 0 0 0-1.5zM5 14.25a.75.75 0 0 0 0 1.5h14a.75.75 0 0 0 0-1.5z', }],
+  paths: [{ d: 'M4 7a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1M4 17a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1', }],
 });
 
 

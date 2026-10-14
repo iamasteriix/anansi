@@ -5,7 +5,7 @@ import type {
   TsSurface, TsTracking,
   BreakpointType, ThemeTokensType, ResponsiveProp, BreakpointOptions, MediaQueryHook,
   ThemeProviderValue,
-  VariantRegistry,
+  VariantNamespaces,
 } from './types';
 import { createContext, useContext, useMemo, useSyncExternalStore } from 'react';
 import {
@@ -225,9 +225,16 @@ const mergeTheme = (
 export const ThemeSheet = {
   create: <T extends Record<string, TSProperties>> (styles: T): T => styles,
   
-  variants: <
-    T extends { [K in keyof VariantRegistry]?: Record<string, NonNullable<VariantRegistry[K]>> }
-  > (recipe: T): T => recipe,
+  variants: new Proxy(
+    {} as {
+      [K in keyof VariantNamespaces]:
+        <
+          R extends VariantNamespaces[K],
+          T extends { [P in keyof R]?: Record<string, R[P]>}
+        >(recipe: T) => T;
+    },
+    { get: () => <R extends { [K in keyof R]?: Record<string, R[K]> }>(recipe: R): R => recipe, },
+  ),
   
   themes: <N extends readonly (ThemeTokensType & { name: string })[]> (
     base: ThemeTokensType = tokens,

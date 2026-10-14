@@ -133,23 +133,7 @@ export type TsGlass = {
 
 
 // THEME: Variants ======================================================================
-export interface ViewVariantExt {};
-export interface GlassViewVariantExt {};
-export interface ButtonVariantExt {};
-export interface GlassButtonVariantExt {};
-export interface ToolbarVariantExt {};
-export interface TextFieldVariantExt {};
-export interface GlassTextFieldVariantExt {};
-
-export interface VariantRegistry {
-  view: ViewVariantExt;
-  glassView: GlassViewVariantExt;
-  button: ButtonVariantExt;
-  glassButton: GlassButtonVariantExt;
-  textField: TextFieldVariantExt;
-  glassTextField: GlassTextFieldVariantExt;
-  toolbar: ToolbarVariantExt;
-};
+export interface VariantNamespaces {};
 // ======================================================================================
 
 
