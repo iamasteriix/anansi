@@ -177,3 +177,5 @@ export const default_breakpoints: Breakpoints = {
 };
 
 export const breakpoint_list: BreakpointType[] = ['cinema', 'compact', 'extended', 'large', 'small', 'regular', 'ultra'];
+
+export const is_dev = import.meta.env.DEV;

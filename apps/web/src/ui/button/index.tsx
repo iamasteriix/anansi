@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import type {
-  ElementChildren, PressElementProps, TsElevation, TsFill, TsGlass, TsIntent, TsJustify,
-  TsRadius,
+  ElementChildren, GroupVariant, PressElementProps, TsElevation, TsFill, TsGlass,
+  TsIntent, TsJustify, TsRadius,
 } from '../@core';
 import type { IconProps } from '../icon';
 import type { BadgeProps } from '../badge';
 import {
-  createSlot, PressElement, slotProp, SlotScopeProvider, useSlots, ViewElement,
+  createGroup, createSlot, GroupItemProvider, PressElement, slotProp, SlotScopeProvider,
+  useGroupItem, useSlots, ViewElement,
 } from '../@core';
 import { Icon } from '../icon';
 import { Badge } from '../badge';
@@ -35,6 +36,12 @@ export type ButtonVariant = {
 
 export type ButtonProps = PressElementProps & {
   variant?: ButtonVariant;
+};
+
+type ButtonGroupVariant = GroupVariant & {
+  spacing?: 'none' | 'sm' | 'lg';
+  stretch?: boolean;
+  disabled?: boolean;
 };
 
 
@@ -95,8 +102,19 @@ export const Button = ({
   onPress, onPressIn, onPressOut, onPressMove, onLongPress, onHoverIn, onHoverOut,
   delayLongPress, disabled,
 }: ButtonProps) => {
+
+  const group = useGroupItem<ButtonGroupVariant>('Button');
+  const cssClasses = [
+    resolveVariants(variant),
+    group?.derived.classes,
+  ].filter(Boolean).join(' ');
+
   return (
     <SlotScopeProvider value='Button'>
+    <GroupItemProvider
+      name='Button'
+      value={ null } // reset for nested buttons, not sure why, but I will find out
+    >
       <PressElement
         onPress={ onPress }
         onPressIn={ onPressIn }
@@ -106,8 +124,8 @@ export const Button = ({
         onHoverIn={ onHoverIn }
         onHoverOut={ onHoverOut }
         delayLongPress={ delayLongPress }
-        disabled={ disabled }
-        classes={ resolveVariants(variant) }
+        disabled={ group?.variant.disabled === true || disabled }
+        classes={ cssClasses }
         id={ id }
         theme={ theme }
         style={ style }
@@ -122,13 +140,14 @@ export const Button = ({
           )
         }
       </PressElement>
+    </GroupItemProvider>
     </SlotScopeProvider>
   );
 }
 
 
-// Slots ————————————————————————————————————————————————————————————————————————————————
-const ButtonIcon = createSlot<
+// Partitions ———————————————————————————————————————————————————————————————————————————
+Button.Icon = createSlot<
   typeof Icon,
   IconProps,
   ButtonSlotProps
@@ -139,7 +158,7 @@ const ButtonIcon = createSlot<
 });
 
 
-const ButtonBadge = createSlot<
+Button.Badge = createSlot<
   typeof Badge,
   BadgeProps,
   ButtonSlotProps
@@ -150,5 +169,20 @@ const ButtonBadge = createSlot<
 });
 
 
-Button.Icon = ButtonIcon;
-Button.Badge = ButtonBadge;
+Button.groupMember = 'Button';
+Button.Group = createGroup<ButtonGroupVariant>({
+  name: 'Button',
+  deriveChildren: (variant, { position, }) => {
+    const orientation = variant.orientation ?? 'horizontal';
+    const spacing = variant.spacing ?? 'sm';
+    return ({
+      classes: [
+        spacing !== 'lg' && styles[`button-group--${spacing}`],
+        spacing !== 'lg' && styles[`button-group--${orientation}-${position}`],
+        variant?.stretch && styles[`button-group--fill-${orientation}`],
+      ].filter(Boolean).join(' '),
+      a11y: variant?.disabled === true ? { state: { disabled: true, }} : undefined,
+    })
+  },
+  deriveContainer: variant => ({ classes: styles[`button-group--gap-${variant.spacing ?? 'sm'}`] }),
+});

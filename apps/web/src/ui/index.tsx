@@ -8,13 +8,12 @@ export { Toolbar } from './toolbar';
 // export { ContextMenu } from './context-menu';
 export { PageView } from './page-view';
 export { Image } from './image';
-export { ThemeSheet } from './@core';
+export { ThemeSheet, useTheme, useMediaQuery, } from './@core';
 
 
 import type { ButtonVariant } from './button';
 import type { ToolbarVariant } from './toolbar';
 import type { ViewVariant } from './view';
-
 
 declare module './@core' {
   interface VariantNamespaces {

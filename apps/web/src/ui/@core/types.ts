@@ -278,3 +278,38 @@ export type SlotMarker = {
     parentName: string;
   };
 };
+
+export type GroupVariant = {
+  orientation?: 'horizontal' | 'vertical';
+};
+
+export type GroupItemPosition = 'first' | 'middle' | 'last' | 'only';
+
+export type GroupItemContext<V extends GroupVariant = GroupVariant> = {
+  variant: V;
+  position: GroupItemPosition;
+  index: number;
+  count: number;
+  derived: GroupItemDerived;
+};
+
+export type GroupMemberMarker = {
+  groupMember: string;
+};
+
+export type GroupProps<V extends GroupVariant = GroupVariant> = ViewElementProps & { variant?: V; };
+
+export type GroupItemProviderProps = {
+  name: string;
+  value: GroupItemContext | null;
+  children: ReactNode;
+};
+
+export type GroupItemDerived = {
+  classes?: string;
+  style?: CSSProperties & Record<`--${string}`, string | number>; // allows CSS variables
+};
+
+export type GroupContainerDerived = GroupItemDerived & {
+  a11y?: A11yProps; // so screen readers know the entire set is disabled
+};

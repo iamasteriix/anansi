@@ -82,12 +82,16 @@
 .button--fill-ghost.button--intent-error     { --btn-fg: var(--colors-error); }
 
 /* Fit ------------------------------------------------------------------------------- */
-.button--fit-fluid-1     { inline-size: var(--size-fluid1); }
-.button--fit-fluid-2     { inline-size: var(--size-fluid2); }
-.button--fit-fluid-3     { inline-size: var(--size-fluid3); }
-.button--fit-fluid-4     { inline-size: var(--size-fluid4); }
-.button--fit-fluid-5     { inline-size: var(--size-fluid5); }
-.button--fit-fluid-6     { inline-size: var(--size-fluid6); }
+/* Container fitting put before the children so the latter wins
+ */
+.button-group--fill-horizontal { flex: 1 1 0; }
+.button-group--fill-vertical   { align-self: stretch; inline-size: auto; }
+.button--fit-fluid-1           { inline-size: var(--size-fluid1); }
+.button--fit-fluid-2           { inline-size: var(--size-fluid2); }
+.button--fit-fluid-3           { inline-size: var(--size-fluid3); }
+.button--fit-fluid-4           { inline-size: var(--size-fluid4); }
+.button--fit-fluid-5           { inline-size: var(--size-fluid5); }
+.button--fit-fluid-6           { inline-size: var(--size-fluid6); }
 
 /* Size ------------------------------------------------------------------------------ */
 .button--size-sm { --btn-pad-block: var(--size-relative1); --btn-pad-inline: var(--size-relative1); --btn-font: var(--typography-textSm);   --btn-gap: var(--size-fixed2); }
@@ -103,12 +107,12 @@
 .button--elevation-max    { z-index: var(--elevation-levelMax); }
 
 /* Shadow ------------------------------------------------------------------------- */
-.button--shadow-base   { box-shadow: var(--elevation-boxShadowBase); }
-.button--shadow-low    { box-shadow: var(--elevation-boxShadowLow); }
-.button--shadow-raised { box-shadow: var(--elevation-boxShadowRaised); }
-.button--shadow-medium { box-shadow: var(--elevation-boxShadowMedium); }
-.button--shadow-high   { box-shadow: var(--elevation-boxShadowHigh); }
-.button--shadow-max    { box-shadow: var(--elevation-boxShadowMax); }
+.button--shadow-base   { box-shadow: var(--elevation-shadowBase); }
+.button--shadow-low    { box-shadow: var(--elevation-shadowLow); }
+.button--shadow-raised { box-shadow: var(--elevation-shadowRaised); }
+.button--shadow-medium { box-shadow: var(--elevation-shadowMedium); }
+.button--shadow-high   { box-shadow: var(--elevation-shadowHigh); }
+.button--shadow-max    { box-shadow: var(--elevation-shadowMax); }
 
 /* Radius ---------------------------------------------------------------------------- */
 .button--radius-sm   { border-radius: var(--shape-radiusSm); }
@@ -180,4 +184,30 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+}
+
+
+/* Group ----------------------------------------------------------------------------- */
+.button-group--gap-none { gap: 0; }
+.button-group--gap-sm   { gap: var(--size-relative1); }
+.button-group--gap-lg   { gap: var(--size-relative3); }
+
+/* spacing decides how round the inner corners are */
+.button-group--none { --group-inner: 0; }
+.button-group--sm   { --group-inner: var(--shape-radiusSm); }
+
+/* position decides which corners are inner (logical properties, so RTL works) */
+.button-group--row-first,    .button-group--row-middle    { border-start-end-radius: var(--group-inner); border-end-end-radius: var(--group-inner); }
+.button-group--row-last,     .button-group--row-middle    { border-start-start-radius: var(--group-inner); border-end-start-radius: var(--group-inner); }
+.button-group--column-first, .button-group--column-middle { border-end-start-radius: var(--group-inner); border-end-end-radius: var(--group-inner); }
+.button-group--column-last,  .button-group--column-middle { border-start-start-radius: var(--group-inner); border-start-end-radius: var(--group-inner); }
+
+.button.button-group--none.button-group--row-middle,
+.button.button-group--none.button-group--row-last {
+  border-inline-start-width: 0;
+}
+
+.button.button-group--none.button-group--column-middle,
+.button.button-group--none.button-group--column-last {
+  border-block-start-width: 0;
 }

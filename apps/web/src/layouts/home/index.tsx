@@ -55,7 +55,7 @@ const variants = ThemeSheet.variants.lucidMoonsong({
   button: {
     header: {
       radius: '2xl',
-      glass: { intensity: 'base', interactive: true, },
+      glass: { interactive: true, },
     },
   },
 });

@@ -1,20 +1,22 @@
 import type {
-  ComponentProps, ComponentType, CSSProperties, KeyboardEvent, PointerEvent,
+  ComponentProps, ComponentType, Context, CSSProperties, KeyboardEvent, PointerEvent,
   ReactElement, ReactNode, SyntheticEvent,
 } from 'react';
 import type {
-  PressElementProps, PressElementState, SlotMarker, ThemeProviderProps, ThemesType,
-  TsGlass,
-  ViewElementProps,
+  GroupContainerDerived, GroupItemContext, GroupItemDerived, GroupItemPosition,
+  GroupItemProviderProps, GroupMemberMarker, GroupProps, GroupVariant, PressElementProps,
+  PressElementState, ResponsiveProp, SlotMarker, ThemeProviderProps, ThemesType,
+  TsDirection, TsGlass, ViewElementProps,
 } from './types';
 import {
-  Children, cloneElement, createContext, createElement, Fragment, isValidElement, useCallback,
-  useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  Children, cloneElement, createContext, createElement, Fragment, isValidElement,
+  useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import { ThemeContext, toCSSVariables, useMediaQuery } from './theme';
 import { resolveA11y } from './a11y';
 import { storageAdapter } from './storage';
 import { tokens } from './tokens';
+import { is_dev } from './constants';
 import styles from './style.module.css';
 
 
@@ -273,7 +275,7 @@ export const ThemeProvider = ({
 // ======================================================================================
 
 
-// SLOT =================================================================================
+// PARTITIONS ===========================================================================
 // src/ui/slot.tsx
 const SlotScope = createContext<string | null>(null);
 export const SlotScopeProvider = SlotScope.Provider;
@@ -291,23 +293,7 @@ export const useSlots = <N extends string> (
     ]))
   ) as Record<N | 'default', ReactElement[]>;
 
-  // something about not treating every nested fragment as a single element
-  const stack = Children.toArray(children)
-  .reverse()
-  .map(node => ({ node, prefix: '' }));
-  const childrenList: ReactElement[] = [];
-  while (stack.length) {
-    const { node, prefix } = stack.pop()!;
-    if (!isValidElement(node)) continue;
-    const key = `${prefix}${node.key}`;
-    if (node.type === Fragment) {
-      const inner = Children.toArray((node.props as { children?: ReactNode }).children);
-      for (let i = inner.length - 1; i >= 0; i--) {
-        stack.push({ node: inner[i], prefix: `${key}/` });
-      }
-    } else childrenList.push(prefix ? cloneElement(node, { key }) : node);
-  }
-
+  const childrenList = flattenChildren(children); // something about not treating every nested fragment as a single element
   for (const child of childrenList) {
     const marker = (child.type as Partial<SlotMarker>).marker;
     if (!marker) {
@@ -370,6 +356,140 @@ export const slotProp = <T,>(
   element: ReactElement,
   key: string
 ): T | undefined => (element.props as Record<string, unknown>)[key] as T | undefined;
+
+
+// src/ui/group.tsx
+const groupContexts = new Map<string, Context<GroupItemContext | null>>();
+
+/**
+ * Gives each group kind its own context, created lazily from a registry keyed by `name`.
+ * A `Button` inside a `TextField` group inside a `Button.Group` still finds its own
+ * group, which a single shared context would
+ * break.
+ * @author claude
+ */
+const getGroupContext = (name: string) => {
+  let context = groupContexts.get(name);
+  if (!context) {
+    context = createContext<GroupItemContext | null>(null);
+    context.displayName = `GroupItem(${name})`;
+    groupContexts.set(name, context);
+  }
+  return context;
+}
+
+
+export const GroupItemProvider = ({ name, value, children, }: GroupItemProviderProps) => createElement(
+  getGroupContext(name).Provider,
+  { value, },
+  children,
+);
+
+
+/**
+ * Members call this. `null` means 'standalone', so the component behaves as it would
+ * when not in a group.
+ */
+export const useGroupItem = <V extends GroupVariant = GroupVariant>(name: string): GroupItemContext<V> | null => {
+  const groupContext = getGroupContext(name);
+  return useContext(groupContext) as GroupItemContext<V> | null;
+}
+
+
+/**
+ * Strangers render untouched and uncounted, and normalize is accepted here as a plain
+ * hook with an identity default.
+ * @author claude
+ */
+export const createGroup = <V extends GroupVariant = GroupVariant>(
+  opts: {
+    name: string;
+    normalize?: (variant: V | undefined) => V;
+    deriveChildren?: (
+      variant: V,
+      item: Pick<GroupItemContext, 'position' | 'index' | 'count'>
+    ) => GroupItemDerived;
+    deriveContainer?: (variant: V) => GroupContainerDerived;
+}) => {
+  const { name } = opts;
+  const normalize = opts.normalize ?? (( variant: V | undefined ) => (variant ?? {}) as V);
+  const deriveChildren = opts.deriveChildren ?? (() => ({}));
+  const kindOf = (child: ReactElement) => (child.type as Partial<GroupMemberMarker>).groupMember;
+
+  const Group = ({
+    children, variant, theme, a11y, id, style, testID, ref,
+  }: GroupProps<V>) => {
+    // saves something, since inline variant object is new on every render, making
+    // memoizing pointless
+    const variantKey = JSON.stringify(variant);
+    const normalized = useMemo(() => normalize(variant), [variantKey]);
+
+    const orientation = normalized.orientation ?? 'horizontal';
+    const containerTheme = useMemo(() => ({
+      flexDirection: orientation === 'horizontal' ? 'row' : 'column' as ResponsiveProp<TsDirection>,
+      ...theme,
+    }), [orientation, theme]);
+    const containerProps = useMemo(() => opts.deriveContainer?.(normalized), [normalized]);
+    const containerStyle = useMemo(() => ({
+      ...containerProps?.style,
+      ...style,
+    }), [containerProps, style]);
+
+    const flatChildrenList = flattenChildren(children);
+    const count = flatChildrenList.filter(child => kindOf(child) === name).length;
+
+    // warn once for all foreign children in group
+    const foreignChildren = flatChildrenList.map(kindOf)
+      .filter(kind => kind && kind !== name).join(', ');
+    useEffect(() => {
+      if (is_dev && foreignChildren) console.warn(`<${name}.Group> contains members of a different group: ${foreignChildren}`);
+    }, [foreignChildren]);
+
+    const values = useMemo(() => Array.from({ length: count }, (_, i): GroupItemContext => {
+      const position: GroupItemPosition = count === 1 ? 'only' : i === 0 ? 'first' : i === count - 1 ? 'last' : 'middle';
+      const item = { position, index: i, count };
+      return { variant: normalized, ...item, derived: deriveChildren(normalized, item) };
+    }),
+    [normalized, count]
+  );
+
+    let index = 0;
+    const items = flatChildrenList.map(child => {
+      if (kindOf(child) !== name) return child; // stranger rendered as-is, not counted
+      return (
+        <GroupItemProvider
+          key={ child.key }
+          name={ name }
+          value={ values[index++] }
+        >
+          { child }
+        </GroupItemProvider>
+      );
+    });
+
+    const accessibility = {
+      role: 'group',
+      ...containerProps?.a11y,
+      ...a11y,
+    };
+    return (
+      <ViewElement
+        classes={ containerProps?.classes }
+        theme={ containerTheme }
+        style={ containerStyle }
+        id={ id }
+        testID={ testID }
+        ref={ ref }
+        a11y={ accessibility }
+      >
+        { items }
+      </ViewElement>
+    );
+  }
+
+  Group.displayName = `${name}.Group`;
+  return Group;
+}
 // ======================================================================================
 
 
@@ -382,8 +502,29 @@ export const resolveGlassStyle = (
   return [
     styles.glass,
     styles[`glass--tint-${options.tint ?? 'raised'}`],
-    styles[`glass--intensity-${options.intensity} ?? 'base'`],
+    styles[`glass--intensity-${options.intensity ?? 'base'}`],
     options.interactive && styles['glass--interactive'],
   ].filter(Boolean).join(' ');
+}
+
+
+const flattenChildren = (children: ReactNode): ReactElement[] => {
+  const stack = Children.toArray(children)
+    .reverse()
+    .map(node => ({ node, prefix: '' }));
+  const flatChildrenList: ReactElement[] = [];
+  while (stack.length) {
+    const { node, prefix } = stack.pop()!;
+    if (!isValidElement(node)) continue;
+    const key = `${prefix}${node.key}`;
+    if (node.type === Fragment) {
+      const inner = Children.toArray((node.props as { children?: ReactNode }).children);
+      for (let i = inner.length - 1; i >= 0; i--) {
+        stack.push({ node: inner[i], prefix: `${key}/` });
+      }
+    } else flatChildrenList.push(prefix ? cloneElement(node, { key }) : node);
+  }
+
+  return flatChildrenList;
 }
 // ======================================================================================

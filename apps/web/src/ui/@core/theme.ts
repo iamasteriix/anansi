@@ -124,7 +124,7 @@ const resolveThemeSheetValue = (
   if (borderWidthKeys.has(key)) return ts_stroke_weight[value as TsStrokeWeight];
 
   // box shadow
-  if (key === 'boxShadow') {
+  if (key === 'shadow') {
     if (hasAttribute(ts_shadow, value)) return ts_shadow[value as TsShadow];
   }
 

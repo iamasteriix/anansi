@@ -1,6 +1,6 @@
 import type { ComponentType, Ref } from 'react';
 import type { ElementProps } from '../@core';
-import { ViewElement } from '../@core';
+import { tokens, ViewElement } from '../@core';
 import styles from './style.module.css';
 
 
@@ -29,10 +29,10 @@ export type IconProps = Omit<ElementProps, 'children'> & {
 
 // Core —————————————————————————————————————————————————————————————————————————————————
 const size_map: Record<NonNullable<IconVariant['size']>, string> = {
-  xsm: 'var(--typography-textXs)',
-  sm: 'var(--typography-textSm)',
-  md: 'var(--typography-textLg)',
-  lg: 'var(--typography-textXl)',
+  xsm: tokens.typography.textXs,
+  sm: tokens.typography.textSm,
+  md: tokens.typography.textMd,
+  lg: tokens.typography.textLg,
 };
 
 const default_variant: IconVariant = {
@@ -43,6 +43,9 @@ const default_variant: IconVariant = {
 const default_a11y = { hidden: true, };
 
 
+/**
+ * @todo Maybe use `useTheme` for icon sizes instead
+ */
 export const Icon = ({
   id, theme, style, testID, ref,
   variant = default_variant,

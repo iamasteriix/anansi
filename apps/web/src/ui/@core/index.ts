@@ -3,8 +3,8 @@ export type {
   TsRadius, TsSurface, TsJustify, TsShadow, TsAlign, TsSize, TsPosition, TsGlass,
   VariantNamespaces,
   StorageAdapter, StorageTopics,
-  ElementChildren, ElementProps, ViewElementProps, PressElementProps,
-  LayoutEvent, PressEvent, TargetEvent, PressElementState,
+  ElementChildren, ElementProps, ViewElementProps, PressElementProps, LayoutEvent,
+  PressEvent, TargetEvent, PressElementState, GroupVariant, GroupItemContext,
   A11yProps,
 } from './types';
 
@@ -15,6 +15,7 @@ export { resolveThemeSheet, ThemeSheet, useMediaQuery, useTheme, } from './theme
 export {
   ThemeProvider,
   ViewElement, PressElement, useSlots, createSlot, slotProp, SlotScopeProvider,
+  createGroup, useGroupItem, GroupItemProvider,
   resolveGlassStyle,
 } from './ui';
 

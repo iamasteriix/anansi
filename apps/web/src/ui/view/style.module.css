@@ -31,9 +31,9 @@
 
 /* Shadow */
 .view--shadow-none { box-shadow: none; }
-.view--shadow-base { box-shadow: var(--elevation-boxShadowBase); }
-.view--shadow-low { box-shadow: var(--elevation-boxShadowLow); }
-.view--shadow-raised { box-shadow: var(--elevation-boxShadowRaised); }
-.view--shadow-medium { box-shadow: var(--elevation-boxShadowMedium); }
-.view--shadow-high { box-shadow: var(--elevation-boxShadowHigh); }
-.view--shadow-max { box-shadow: var(--elevation-boxShadowMax); }
+.view--shadow-base { box-shadow: var(--elevation-shadowBase); }
+.view--shadow-low { box-shadow: var(--elevation-shadowLow); }
+.view--shadow-raised { box-shadow: var(--elevation-shadowRaised); }
+.view--shadow-medium { box-shadow: var(--elevation-shadowMedium); }
+.view--shadow-high { box-shadow: var(--elevation-shadowHigh); }
+.view--shadow-max { box-shadow: var(--elevation-shadowMax); }
