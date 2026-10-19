@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type {
-  ElementChildren, GroupVariant, PressElementProps, TsElevation, TsFill, TsGlass,
-  TsIntent, TsJustify, TsRadius,
+  ElementChildren, GroupVariant, PressElementProps, TsColor, TsElevation, TsFill,
+  TsGlass, TsIntent, TsJustify, TsRadius,
 } from '../@core';
 import type { IconProps } from '../icon';
 import type { BadgeProps } from '../badge';
@@ -15,7 +15,6 @@ import { styles as glassStyles } from '../@core';
 import styles from './style.module.css';
 
 
-
 // Types ————————————————————————————————————————————————————————————————————————————————
 type ButtonSlotAlignment = 'start' | 'end';
 type ButtonSlotProps = {
@@ -25,6 +24,7 @@ type ButtonSlotProps = {
 export type ButtonVariant = {
   fill?: TsFill;
   intent?: TsIntent;
+  foreground?: TsColor;
   fit?: 'fluid-1' | 'fluid-2' | 'fluid-3' | 'fluid-4' | 'fluid-5' | 'fluid-6';
   elevation?: TsElevation;
   shadow?: 'auto' | 'none',
@@ -49,6 +49,7 @@ type ButtonGroupVariant = GroupVariant & {
 const resolveVariants = (variant: ButtonVariant | undefined): string => {
   const base = [
     styles.button,
+    styles[`button--foreground-${variant?.foreground || 'primary'}`],
     variant?.elevation && styles[`button--elevation-${variant.elevation}`],
     variant?.shadow === 'auto' && variant?.elevation ? styles[`button--shadow-${variant?.elevation}`] : undefined,
     styles[`button--size-${variant?.size ?? 'md'}`],
@@ -86,11 +87,11 @@ const ButtonLayout = ({ children }: { children: ReactNode; }) => {
   return (
     <>
       { startSlot.length > 0 &&
-        <ViewElement classes={ styles.button__slot }>{ startSlot }</ViewElement>
+        <ViewElement classes={ styles['button__slot--start'] }>{ startSlot }</ViewElement>
       }
-      <ViewElement classes={ styles.button__slot }>{ slots.default }</ViewElement>
+      <ViewElement classes={ styles['button__slot--fill'] }>{ slots.default }</ViewElement>
       { endSlot.length > 0 &&
-        <ViewElement classes={ styles.button__slot }>{ endSlot }</ViewElement>
+        <ViewElement classes={ styles['button__slot--end'] }>{ endSlot }</ViewElement>
       }
     </>
   );
@@ -113,7 +114,7 @@ export const Button = ({
     <SlotScopeProvider value='Button'>
     <GroupItemProvider
       name='Button'
-      value={ null } // reset for nested buttons, not sure why, but I will find out
+      value={ null } // shield descendants from outer group (dk what this means, but I will find out)
     >
       <PressElement
         onPress={ onPress }
@@ -181,8 +182,10 @@ Button.Group = createGroup<ButtonGroupVariant>({
         spacing !== 'lg' && styles[`button-group--${orientation}-${position}`],
         variant?.stretch && styles[`button-group--fill-${orientation}`],
       ].filter(Boolean).join(' '),
-      a11y: variant?.disabled === true ? { state: { disabled: true, }} : undefined,
     })
   },
-  deriveContainer: variant => ({ classes: styles[`button-group--gap-${variant.spacing ?? 'sm'}`] }),
+  deriveContainer: variant => ({
+    classes: styles[`button-group--gap-${variant.spacing ?? 'sm'}`],
+    a11y: variant?.disabled === true ? { state: { disabled: true, }} : undefined,
+  }),
 });

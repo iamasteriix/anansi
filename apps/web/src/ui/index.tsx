@@ -1,7 +1,7 @@
 export { View, } from './view';
 export { AppView } from './app-view';
 export { Button, } from './button';
-// export { TextField } from './text-field';
+export { TextField } from './text-field';
 export { Text } from './text';
 export { Badge } from './badge';
 export { Toolbar } from './toolbar';
@@ -12,6 +12,7 @@ export { ThemeSheet, useTheme, useMediaQuery, } from './@core';
 
 
 import type { ButtonVariant } from './button';
+import type { TextFieldVariant } from './text-field';
 import type { ToolbarVariant } from './toolbar';
 import type { ViewVariant } from './view';
 
@@ -21,6 +22,7 @@ declare module './@core' {
       view: ViewVariant;
       button: ButtonVariant;
       toolbar: ToolbarVariant;
+      textfield: TextFieldVariant;
     },
 }};
 

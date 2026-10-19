@@ -11,28 +11,28 @@
 
 /* Size */
 .toolbar--size-xsm {
-  --toolbar-gap:  var(--size-fixed-2);
-  --toolbar-pad:  var(--size-fixed-3);
+  --toolbar-gap:  var(--size-fixed2);
+  --toolbar-pad:  var(--size-fixed3);
   --toolbar-font: var(--typography-textXs);
 }
 .toolbar--size-sm {
-  --toolbar-gap:  var(--size-fixed-3);
-  --toolbar-pad:  var(--size-fixed-4);
+  --toolbar-gap:  var(--size-fixed3);
+  --toolbar-pad:  var(--size-fixed4);
   --toolbar-font: var(--typography-textSm);
 }
 .toolbar--size-md {
-  --toolbar-gap:  var(--size-fixed-4);
-  --toolbar-pad:  var(--size-fixed-5);
+  --toolbar-gap:  var(--size-fixed4);
+  --toolbar-pad:  var(--size-fixed5);
   --toolbar-font: var(--typography-textBase);
 }
 .toolbar--size-lg {
-  --toolbar-gap:  var(--size-fixed-6);
-  --toolbar-pad:  var(--size-fixed-6);
+  --toolbar-gap:  var(--size-fixed6);
+  --toolbar-pad:  var(--size-fixed6);
   --toolbar-font: var(--typography-textMd);
 }
 .toolbar--size-xl {
-  --toolbar-gap:  var(--size-fixed-8);
-  --toolbar-pad:  var(--size-fixed-8);
+  --toolbar-gap:  var(--size-fixed8);
+  --toolbar-pad:  var(--size-fixed8);
   --toolbar-font: var(--typography-textLg);
 }
 

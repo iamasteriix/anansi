@@ -1,0 +1,84 @@
+/* Frame ----------------------------------------------------------------------------- */
+.text-field {
+  --tf-bg: transparent;
+  --tf-border: var(--colors-strokeDefault);
+  --tf-focus: var(--colors-primary);
+  --tf-pad-block: var(--size-relative2);
+  --tf-pad-inline: var(--size-relative3);
+  --tf-gap: var(--size-relative2);
+  --tf-font: var(--typography-textBase);
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding-block: var(--tf-pad-block);
+  padding-inline: var(--tf-pad-inline);
+  gap: var(--tf-gap);
+  background-color: var(--tf-bg);
+  border-style: solid;
+  border-width: var(--shape-strokeMedium);
+  border-color: var(--tf-border);
+  color: var(--colors-textPrimary);
+  font-family: var(--typography-fontBody);
+  font-size: var(--tf-font);
+  cursor: text;
+  transition: border-color var(--motion-durationBase) ease,
+              background-color var(--motion-durationBase) ease;
+}
+
+.text-field:focus-within { border-color: var(--tf-focus); }
+
+/* Fill ------------------------------------------------------------------------------ */
+.text-field--fill-outlined { --tf-bg: transparent; }
+.text-field--fill-filled   { --tf-bg: var(--colors-bgSurface); --tf-border: transparent; }
+.text-field--fill-ghost    { --tf-bg: transparent; --tf-border: transparent; border-width: 0; }
+
+/* Focus color (outline) ------------------------------------------------------------- */
+.text-field--outline-primary   { --tf-focus: var(--colors-primary); }
+.text-field--outline-secondary { --tf-focus: var(--colors-secondary); }
+.text-field--outline-accent    { --tf-focus: var(--colors-accent); }
+.text-field--outline-info      { --tf-focus: var(--colors-info); }
+.text-field--outline-success   { --tf-focus: var(--colors-success); }
+.text-field--outline-warning   { --tf-focus: var(--colors-warning); }
+.text-field--outline-error     { --tf-focus: var(--colors-error); }
+
+/* Size ------------------------------------------------------------------------------ */
+.text-field--size-sm { --tf-pad-block: var(--size-relative1); --tf-pad-inline: var(--size-relative2); --tf-gap: var(--size-relative1); --tf-font: var(--typography-textSm); }
+.text-field--size-md { --tf-pad-block: var(--size-relative2); --tf-pad-inline: var(--size-relative3); --tf-gap: var(--size-relative2); --tf-font: var(--typography-textBase); }
+.text-field--size-lg { --tf-pad-block: var(--size-relative3); --tf-pad-inline: var(--size-relative4); --tf-gap: var(--size-relative3); --tf-font: var(--typography-textMd); }
+
+/* Radius, elevation, shadow --------------------------------------------------------- */
+.text-field--radius-sm   { border-radius: var(--shape-radiusSm); }
+.text-field--radius-md   { border-radius: var(--shape-radiusMd); }
+.text-field--radius-lg   { border-radius: var(--shape-radiusLg); }
+.text-field--radius-xl   { border-radius: var(--shape-radiusXl); }
+.text-field--radius-2xl  { border-radius: var(--shape-radius2xl); }
+.text-field--radius-full { border-radius: var(--shape-radiusFull); }
+
+.text-field--elevation-base   { z-index: var(--elevation-levelBase); }
+.text-field--elevation-low    { z-index: var(--elevation-levelLow); }
+.text-field--elevation-raised { z-index: var(--elevation-levelRaised); }
+.text-field--elevation-medium { z-index: var(--elevation-levelMedium); }
+.text-field--elevation-high   { z-index: var(--elevation-levelHigh); }
+.text-field--elevation-max    { z-index: var(--elevation-levelMax); }
+
+.text-field--shadow-low    { box-shadow: var(--elevation-shadowLow); }
+.text-field--shadow-raised { box-shadow: var(--elevation-shadowRaised); }
+.text-field--shadow-medium { box-shadow: var(--elevation-shadowMedium); }
+.text-field--shadow-high   { box-shadow: var(--elevation-shadowHigh); }
+.text-field--shadow-max    { box-shadow: var(--elevation-shadowMax); }
+
+/* Glass: the core .glass class owns bg and border, so only focus is layered on ------ */
+.text-field.glass:focus-within { border-color: var(--tf-focus); border-top-color: var(--tf-focus); }
+
+/* Slot tracks (only rendered by Set when slots exist) ------------------------------- */
+.text-field__slot--start,
+.text-field__slot--end {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--tf-gap);
+}

@@ -1,6 +1,4 @@
-import type {
-  CSSProperties, PointerEvent, ReactElement, ReactNode, Ref, SyntheticEvent,
-} from 'react';
+import type { CSSProperties, ReactElement, ReactNode, Ref, } from 'react';
 import { tokens } from './tokens';
 
 
@@ -235,7 +233,22 @@ export type PressEvent = {
 // ======================================================================================
 
 
-// UI ===============================================================================
+// PSEUDO-OFFICIAL ======================================================================
+// These are on the official react native website, just don't have dedicated pages
+export type TextEventPayload = TargetEvent & {
+  text: string;
+  eventCount: number; // sequence counter for native-to-JS bridge sync (not available on web, 0 is fallback)
+};
+export type ContentSizeEventPayload = { contentSize: { width: number; height: number; }};
+export type KeyEventPayload = { key: string };
+export type ScrollEventPayload = { contentOffset: { x: number; y: number; }};
+export type SelectionEventPayload = { selection: { start: number; end: number; }};
+// ======================================================================================
+
+
+// UI ===================================================================================
+export type NativeEvent<T> = { nativeEvent: T; };
+
 export type ElementChildren = boolean | ReactElement | ElementChildren[];
 
 export type ElementProps = {
@@ -256,16 +269,14 @@ export type PressElementState = {
   disabled?: boolean;
 };
 
-type PressElementEvent = SyntheticEvent<HTMLDivElement>;
-
 export type PressElementProps = Omit<ElementProps, 'children'> & {
-  onPress?: (event: PressElementEvent) => void;
-  onPressIn?: (event: PressElementEvent) => void;
-  onPressOut?: (event: PressElementEvent) => void;
-  onPressMove?: (event: PressElementEvent) => void;
-  onLongPress?: (event: PressElementEvent) => void;
-  onHoverIn?: (event: PointerEvent) => void;
-  onHoverOut?: (event: PointerEvent) => void;
+  onPress?: (event: NativeEvent<PressEvent>) => void;
+  onPressIn?: (event: NativeEvent<PressEvent>) => void;
+  onPressOut?: (event: NativeEvent<PressEvent>) => void;
+  onPressMove?: (event: NativeEvent<PressEvent>) => void;
+  onLongPress?: (event: NativeEvent<PressEvent>) => void;
+  onHoverIn?: (event: NativeEvent<PressEvent>) => void;
+  onHoverOut?: (event: NativeEvent<PressEvent>) => void;
   delayLongPress?: number;
   disabled?: boolean;
   children?: ElementChildren | ((state: PressElementState) => ElementChildren);
@@ -312,4 +323,32 @@ export type GroupItemDerived = {
 
 export type GroupContainerDerived = GroupItemDerived & {
   a11y?: A11yProps; // so screen readers know the entire set is disabled
+};
+
+export type TextInputElementProps = Omit<ElementProps, 'children'> & {
+  autoComplete?: string;
+  autoFocus?: boolean;
+  defaultValue?: string;
+  editable?: boolean;
+  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
+  maxLength?: number;
+  placeholder?: string;
+  readOnly?: boolean;
+  submitBehavior?: 'submit' | 'newline';
+  rows?: number;
+  value?: string;
+  onBlur?: (event: NativeEvent<TargetEvent>) => void;
+  onChange?: (event: NativeEvent<TextEventPayload>) => void;
+  onChangeText?: (text: string) => void;
+  onContentSizeChange?: (event: NativeEvent<ContentSizeEventPayload>) => void;
+  onFocus?: (event: NativeEvent<TargetEvent>) => void;
+  onKeyPress?: (event: NativeEvent<KeyEventPayload>) => void;
+  onPressIn?: (event: NativeEvent<PressEvent>) => void;
+  onPressOut?: (event: NativeEvent<PressEvent>) => void;
+  onScroll?: (event: NativeEvent<ScrollEventPayload>) => void;
+  onSelectionChange?: (event: NativeEvent<SelectionEventPayload>) => void;
+  onSubmitEditing?: (event: NativeEvent<TextEventPayload>) => void;
+  onEndEditing?: (event: NativeEvent<TextEventPayload>) => void;
+  onLayout?: (event: NativeEvent<LayoutEvent>) => void;
+  ref?: Ref<HTMLTextAreaElement>;
 };

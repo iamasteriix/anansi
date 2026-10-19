@@ -1,12 +1,12 @@
 import type {
-  ComponentProps, ComponentType, Context, CSSProperties, KeyboardEvent, PointerEvent,
-  ReactElement, ReactNode, SyntheticEvent,
+  ChangeEvent, ComponentProps, ComponentType, Context, CSSProperties, FocusEvent,
+  KeyboardEvent, PointerEvent, ReactElement, ReactNode, UIEvent,
 } from 'react';
 import type {
   GroupContainerDerived, GroupItemContext, GroupItemDerived, GroupItemPosition,
   GroupItemProviderProps, GroupMemberMarker, GroupProps, GroupVariant, PressElementProps,
-  PressElementState, ResponsiveProp, SlotMarker, ThemeProviderProps, ThemesType,
-  TsDirection, TsGlass, ViewElementProps,
+  PressElementState, PressEvent, ResponsiveProp, SlotMarker, TextInputElementProps,
+  ThemeProviderProps, ThemesType, TsDirection, TsGlass, ViewElementProps,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
@@ -20,15 +20,92 @@ import { is_dev } from './constants';
 import styles from './style.module.css';
 
 
+// UTILS ================================================================================
+export const resolveGlassStyle = (
+  glass: boolean | TsGlass | undefined,
+): string => {
+  if (!glass) return '';
+  const options = glass === true ? {} : glass;
+  return [
+    styles.glass,
+    styles[`glass--tint-${options.tint ?? 'raised'}`],
+    styles[`glass--intensity-${options.intensity ?? 'base'}`],
+    options.interactive && styles['glass--interactive'],
+  ].filter(Boolean).join(' ');
+}
+
+
+const flattenChildren = (children: ReactNode): ReactElement[] => {
+  const stack = Children.toArray(children)
+    .reverse()
+    .map(node => ({ node, prefix: '' }));
+  const flatChildrenList: ReactElement[] = [];
+  while (stack.length) {
+    const { node, prefix } = stack.pop()!;
+    if (!isValidElement(node)) continue;
+    const key = `${prefix}${node.key}`;
+    if (node.type === Fragment) {
+      const inner = Children.toArray((node.props as { children?: ReactNode }).children);
+      for (let i = inner.length - 1; i >= 0; i--) {
+        stack.push({ node: inner[i], prefix: `${key}/` });
+      }
+    } else flatChildrenList.push(prefix ? cloneElement(node, { key }) : node);
+  }
+
+  return flatChildrenList;
+}
+
+
+const parseTargetId = (id: string | undefined) => {
+  const parsed = parseInt(id || '', 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+
+/**
+ * @see https://reactnative.dev/docs/pressevent
+ */
+const pressPayload = (event: PointerEvent<HTMLElement>): PressEvent => {
+  const payload: PressEvent = {
+    identifier: event.pointerId,
+    locationX: event.nativeEvent.offsetX,
+    locationY: event.nativeEvent.offsetY,
+    pageX: event.pageX,
+    pageY: event.pageY,
+    target: parseTargetId(event.currentTarget.id),
+    timestamp: event.timeStamp,
+    changedTouches: [],
+    touches: [],
+  };
+  payload.changedTouches = [payload];
+  payload.touches = [payload];
+  return payload;
+}
+
+
+const keyboardPressPayload = (event: KeyboardEvent<HTMLElement>): PressEvent => ({
+  identifier: -1,
+  locationX: 0,
+  locationY: 0,
+  pageX: 0,
+  pageY: 0,
+  target: parseTargetId(event.currentTarget.id),
+  timestamp: event.timeStamp,
+  changedTouches: [],
+  touches: [],
+});
+// ======================================================================================
+
+
 // VIEW =================================================================================
 // src/ui/view-element.tsx
 export const ViewElement = ({
   children, id, theme, a11y, style, testID, ref, classes,
 }: ViewElementProps & { classes?: string; }) => {
 
-  const { cssProperties, } = useMediaQuery(theme, style);         // resolve styling at media query level
-  const className = [styles['view-element'], classes].join(' ');  // merge css classes
-  const accessibility = resolveA11y(a11y);                        // resolve accessibility props
+  const { cssProperties, } = useMediaQuery(theme, style);                         // resolve styling at media query level
+  const className = [styles['view-element'], classes].filter(Boolean).join(' ');  // merge css classes
+  const accessibility = resolveA11y(a11y);                                        // resolve accessibility props
 
   return (
     <div
@@ -61,110 +138,90 @@ export const PressElement = ({
   const isLongFired = useRef(false);
   const isKeyPress = useRef(false);
 
-  const clearTimer = useCallback(
-    () => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-        timer.current = undefined;
-      }
-    },
-    []
-  );
+  const clearTimer = useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = undefined;
+    }
+  }, []);
 
-  const handlePointerDown = useCallback(
-    (event: SyntheticEvent<HTMLDivElement>) => {
-      if (disabled) return;
+  const handlePointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    setPressed(true);
+    isLongFired.current = false;
+    onPressIn?.({ nativeEvent: pressPayload(event) });
+    if (onLongPress) {
+      timer.current = setTimeout(
+        () => {
+          isLongFired.current = true;
+          onLongPress({ nativeEvent: pressPayload(event) });
+        },
+        delayLongPress
+      );
+    }
+  }, [disabled, onPressIn, onLongPress, delayLongPress]);
+
+  const handlePointerUp = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    setPressed(false);
+    clearTimer();
+    onPressOut?.({ nativeEvent: pressPayload(event) });
+    if (!isLongFired.current) onPress?.({ nativeEvent: pressPayload(event) });
+  }, [disabled, onPressOut, onPress, setPressed, clearTimer]);
+
+  const handlePointerCancel = useCallback(() => {
+    setPressed(false);
+    clearTimer();
+    isLongFired.current = false;
+    isKeyPress.current = false;
+  },
+  [clearTimer]);
+
+  const handlePointerEnter = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    onHoverIn?.({ nativeEvent: pressPayload(event) });
+  },
+  [disabled, onHoverIn]);
+
+  const handlePointerLeave = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    if (event.buttons === 0) onHoverOut?.({ nativeEvent: pressPayload(event) });
+    if (!isKeyPress.current) handlePointerCancel();
+  }, [disabled, onHoverOut, handlePointerCancel]);
+
+  const handlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    onPressMove?.({ nativeEvent: pressPayload(event) });
+  }, [disabled, onPressMove]);
+
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+    if (disabled || event.repeat) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      isKeyPress.current = true;
       setPressed(true);
       isLongFired.current = false;
-      onPressIn?.(event);
-      if (onLongPress) {
-        timer.current = setTimeout(
-          () => {
-            isLongFired.current = true;
-            onLongPress(event);
-          },
-          delayLongPress
-        );
-      }
-    },
-    [disabled, onPressIn, onLongPress, delayLongPress]
-  );
+      onPressIn?.({ nativeEvent: keyboardPressPayload(event) });
+    }
+  }, [disabled, onPressIn]);
 
-  const handlePointerUp = useCallback(
-    (event: SyntheticEvent<HTMLDivElement>) => {
-      if (disabled) return;
+  const handleKeyUp = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
       setPressed(false);
       clearTimer();
-      onPressOut?.(event);
-      if (!isLongFired.current) onPress?.(event);
-    },
-    [disabled, onPressOut, onPress, setPressed, clearTimer]
-  );
-
-  const handlePointerCancel = useCallback(
-    () => {
-      setPressed(false);
-      clearTimer();
-      isLongFired.current = false;
+      onPressOut?.({ nativeEvent: keyboardPressPayload(event) });
+      if (!isLongFired.current) onPress?.({ nativeEvent: keyboardPressPayload(event) });
       isKeyPress.current = false;
-    },
-    [clearTimer]
-  );
-
-  const handlePointerEnter = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (disabled) return;
-      onHoverIn?.(event);
-    },
-    [disabled, onHoverIn]
-  );
-
-  const handlePointerLeave = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (disabled) return;
-      if (event.buttons === 0) onHoverOut?.(event);
-      if (!isKeyPress.current) handlePointerCancel();
-    },
-    [disabled, onHoverOut, handlePointerCancel]
-  );
-
-  const handlePointerMove = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (disabled) return;
-      onPressMove?.(event);
-    },
-    [disabled, onPressMove]
-  );
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
-      if (disabled || event.repeat) return;
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        isKeyPress.current = true;
-        handlePointerDown(event);
-      }
-    },
-    [disabled, handlePointerDown]
-  );
-
-  const handleKeyUp = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
-      if (disabled) return;
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        handlePointerUp(event);
-        isKeyPress.current = false;
-      }
-    },
-    [disabled, handlePointerUp]
-  );
+    }
+  }, [disabled, onPressOut, onPress, clearTimer]);
 
   const state: PressElementState = { pressed, disabled, };
   const content = typeof children === 'function' ? children(state) : children;
 
   const { cssProperties } = useMediaQuery(theme, style);
-  const className = [styles['press-element'], classes].join(' ');
+  const className = [styles['press-element'], classes].filter(Boolean).join(' ');
   const accessibility = resolveA11y({
     role: 'button',
     ...a11y,
@@ -191,6 +248,172 @@ export const PressElement = ({
     >
       { content }
     </div>
+  );
+}
+// ======================================================================================
+
+
+// TEXT INPUT ===========================================================================
+export const TextInputElement = ({
+  id, theme, style, a11y, testID, ref,
+  autoComplete, autoFocus, defaultValue, inputMode, maxLength, placeholder,
+  readOnly, value,
+  onBlur, onChange, onChangeText, onFocus, onKeyPress, onPressIn, onPressOut, onScroll,
+  onSelectionChange, onSubmitEditing, onEndEditing, onContentSizeChange,
+  onLayout,
+  classes,
+  rows = 1,
+  editable = true,
+  submitBehavior = 'submit',
+}: TextInputElementProps & { classes?: string }) => {
+
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const setRef = useCallback((node: HTMLTextAreaElement | null) => {
+    inputRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref]);
+
+  // document-level selectionchange filtered to this element
+  useEffect(() => {
+    const element = inputRef.current;
+    if (!element || !onSelectionChange) return;
+    const handler = () => {
+      if (document.activeElement !== element) return;
+      onSelectionChange({
+        nativeEvent: {
+          selection: {
+            start: element.selectionStart ?? 0,
+            end: element.selectionEnd ?? 0,
+        }},
+      });
+    }
+    document.addEventListener('selectionchange', handler);
+    return () => {
+      document.removeEventListener('selectionchange', handler);
+    }
+  }, [onSelectionChange]);
+
+  // ResizeObserver on the textarea
+  useEffect(() => {
+    const element = inputRef.current;
+    if (!element || !onContentSizeChange) return;
+    const observer = new ResizeObserver(entries => entries.forEach(entry => {
+      const { width, height } = entry.contentRect;
+      onContentSizeChange({
+        nativeEvent: { contentSize: { width, height }},
+      });
+    }));
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+    }
+  }, [onContentSizeChange]);
+
+  // ResizeObserver on the textarea
+  useEffect(() => {
+    const element = inputRef.current;
+    if (!element || !onLayout) return;
+    const observer = new ResizeObserver(entries => entries.forEach(entry => {
+      const { width, height, x, y } = entry.contentRect;
+      onLayout({
+        nativeEvent: {
+          layout: { width, height, x, y },
+          target: parseTargetId(entry.target.id),
+        },
+      });
+    }));
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+    }
+  }, [onLayout]);
+
+  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    onChange?.({
+      nativeEvent: {
+        text: event.target.value,
+        eventCount: 0,
+        target: parseTargetId(event.currentTarget.id),
+      },
+    });
+    onChangeText?.(event.target.value);
+  };
+
+  const handleFocus = (event: FocusEvent<HTMLTextAreaElement>) => {
+    onFocus?.({ nativeEvent: { target: parseTargetId(event.currentTarget.id) } });
+  }
+
+  const handleBlur = (event: FocusEvent<HTMLTextAreaElement>) => {
+    onBlur?.({ nativeEvent: { target: parseTargetId(event.currentTarget.id) } });
+    onEndEditing?.({
+      nativeEvent: {
+        text: event.currentTarget.value,
+        eventCount: 0,
+        target: parseTargetId(event.currentTarget.id),
+      },
+    });
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    onKeyPress?.(event);
+    if (event.key === 'Enter' && submitBehavior === 'submit' && !event.shiftKey) {
+      event.preventDefault();
+      onSubmitEditing?.({
+        nativeEvent: {
+          text: event.currentTarget.value,
+          eventCount: 0,
+          target: parseTargetId(event.currentTarget.id),
+      }});
+    }
+  }
+
+  const handleScroll = (event: UIEvent<HTMLTextAreaElement>) => {
+    onScroll?.({
+      nativeEvent: {
+        contentOffset: {
+          x: event.currentTarget.scrollLeft,
+          y: event.currentTarget.scrollTop,
+      }},
+    });
+  }
+  
+  const { cssProperties, } = useMediaQuery(theme, style);
+  const className = [styles['text-input-element'], classes].filter(Boolean).join(' ');
+  const accessibility = resolveA11y({
+    ...a11y,
+    state: {
+      ...a11y?.state,
+      disabled: !editable || a11y?.state?.disabled,
+    },
+  });
+
+  return (
+    <textarea
+      className={ className }
+      style={ cssProperties }
+      autoComplete={ autoComplete }
+      autoFocus={ autoFocus }
+      defaultValue={ defaultValue}
+      disabled={ !editable }
+      inputMode={ inputMode }
+      maxLength={ maxLength }
+      placeholder={ placeholder }
+      readOnly={ readOnly }
+      rows={ rows }
+      value={ value }
+      onChange={ handleChange }
+      onFocus={ handleFocus }
+      onBlur={ handleBlur }
+      onKeyDown={ handleKeyDown }
+      onPointerDown={ event => onPressIn?.({ nativeEvent: pressPayload(event), }) }
+      onPointerUp={ event => onPressOut?.({ nativeEvent: pressPayload(event), }) }
+      id={ id }
+      onScroll={ handleScroll }
+      data-testid={ testID }
+      ref={ setRef }
+      { ...accessibility }
+    />
   );
 }
 // ======================================================================================
@@ -489,42 +712,5 @@ export const createGroup = <V extends GroupVariant = GroupVariant>(
 
   Group.displayName = `${name}.Group`;
   return Group;
-}
-// ======================================================================================
-
-
-// UTILS ================================================================================
-export const resolveGlassStyle = (
-  glass: boolean | TsGlass | undefined,
-): string => {
-  if (!glass) return '';
-  const options = glass === true ? {} : glass;
-  return [
-    styles.glass,
-    styles[`glass--tint-${options.tint ?? 'raised'}`],
-    styles[`glass--intensity-${options.intensity ?? 'base'}`],
-    options.interactive && styles['glass--interactive'],
-  ].filter(Boolean).join(' ');
-}
-
-
-const flattenChildren = (children: ReactNode): ReactElement[] => {
-  const stack = Children.toArray(children)
-    .reverse()
-    .map(node => ({ node, prefix: '' }));
-  const flatChildrenList: ReactElement[] = [];
-  while (stack.length) {
-    const { node, prefix } = stack.pop()!;
-    if (!isValidElement(node)) continue;
-    const key = `${prefix}${node.key}`;
-    if (node.type === Fragment) {
-      const inner = Children.toArray((node.props as { children?: ReactNode }).children);
-      for (let i = inner.length - 1; i >= 0; i--) {
-        stack.push({ node: inner[i], prefix: `${key}/` });
-      }
-    } else flatChildrenList.push(prefix ? cloneElement(node, { key }) : node);
-  }
-
-  return flatChildrenList;
 }
 // ======================================================================================

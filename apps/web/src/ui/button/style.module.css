@@ -8,11 +8,6 @@
   --btn-pad-block: var(--size-relative2);
   --btn-pad-inline: var(--size-relative2);
   --btn-font: var(--typography-textBase);
-  --glass-tone: var(--colors-bgRaised);
-  --glass-alpha: var(--optical-opacityHigh);
-  --glass-blur: var(--optical-blurMedium);
-  --glass-saturate: var(--optical-saturateSubtle);
-  --glass-brightness: var(--optical-brightnessNormal);
 
   display: inline-flex;
   flex-direction: row;
@@ -36,8 +31,8 @@
   transition: filter 120ms ease, opacity 120ms ease;
 }
 
-.button:not([aria-disabled='true']):hover  { filter: brightness(1.12); }
-.button:not([aria-disabled='true']):active { filter: brightness(.9); }
+.button:not([aria-disabled='true']):hover  { filter: brightness(var(--optical-brightnessHigh)); }
+.button:not([aria-disabled='true']):active { filter: brightness(var(--optical-brightnessLow)); }
 
 .button:focus-visible {
   outline: 1px solid var(--colors-info);
@@ -46,40 +41,45 @@
 
 /* Fill × Intent ---------------------------------------------------------------------- */
 /* Filled */
-.button--fill-filled.button--intent-primary   { --btn-bg: var(--colors-primary);   --btn-fg: var(--colors-textPrimary); }
-.button--fill-filled.button--intent-secondary { --btn-bg: var(--colors-secondary); --btn-fg: var(--colors-textPrimary); }
-.button--fill-filled.button--intent-accent    { --btn-bg: var(--colors-accent);    --btn-fg: var(--colors-textInverse); }
-.button--fill-filled.button--intent-info      { --btn-bg: var(--colors-info);      --btn-fg: var(--colors-textPrimary); }
-.button--fill-filled.button--intent-success   { --btn-bg: var(--colors-success);   --btn-fg: var(--colors-textPrimary); }
-.button--fill-filled.button--intent-warning   { --btn-bg: var(--colors-warning);   --btn-fg: var(--colors-textPrimary); }
-.button--fill-filled.button--intent-error     { --btn-bg: var(--colors-error);     --btn-fg: var(--colors-textPrimary); }
+.button--fill-filled.button--intent-primary   { --btn-bg: var(--colors-primary); }
+.button--fill-filled.button--intent-secondary { --btn-bg: var(--colors-secondary); }
+.button--fill-filled.button--intent-accent    { --btn-bg: var(--colors-accent); }
+.button--fill-filled.button--intent-info      { --btn-bg: var(--colors-info); }
+.button--fill-filled.button--intent-success   { --btn-bg: var(--colors-success); }
+.button--fill-filled.button--intent-warning   { --btn-bg: var(--colors-warning); }
+.button--fill-filled.button--intent-error     { --btn-bg: var(--colors-error); }
 
 /* Tonal */
-.button--fill-tonal.button--intent-primary   { --btn-bg: rgb(from var(--colors-primary)   r g b / .15); --btn-fg: var(--colors-primary); }
-.button--fill-tonal.button--intent-secondary { --btn-bg: rgb(from var(--colors-secondary) r g b / .15); --btn-fg: var(--colors-secondary); }
-.button--fill-tonal.button--intent-accent    { --btn-bg: rgb(from var(--colors-accent)    r g b / .15); --btn-fg: var(--colors-accent); }
-.button--fill-tonal.button--intent-info      { --btn-bg: rgb(from var(--colors-info)      r g b / .15); --btn-fg: var(--colors-info); }
-.button--fill-tonal.button--intent-success   { --btn-bg: rgb(from var(--colors-success)   r g b / .15); --btn-fg: var(--colors-success); }
-.button--fill-tonal.button--intent-warning   { --btn-bg: rgb(from var(--colors-warning)   r g b / .15); --btn-fg: var(--colors-warning); }
-.button--fill-tonal.button--intent-error     { --btn-bg: rgb(from var(--colors-error)     r g b / .15); --btn-fg: var(--colors-error); }
+.button--fill-tonal.button--intent-primary   { --btn-bg: color-mix(in srgb, var(--colors-primary)   calc(var(--optical-opacityHigh) * 100%), transparent); }
+.button--fill-tonal.button--intent-secondary { --btn-bg: color-mix(in srgb, var(--colors-secondary) calc(var(--optical-opacityHigh) * 100%), transparent); }
+.button--fill-tonal.button--intent-accent    { --btn-bg: color-mix(in srgb, var(--colors-accent)    calc(var(--optical-opacityHigh) * 100%), transparent); }
+.button--fill-tonal.button--intent-info      { --btn-bg: color-mix(in srgb, var(--colors-info)      calc(var(--optical-opacityHigh) * 100%), transparent); }
+.button--fill-tonal.button--intent-success   { --btn-bg: color-mix(in srgb, var(--colors-success)   calc(var(--optical-opacityHigh) * 100%), transparent); }
+.button--fill-tonal.button--intent-warning   { --btn-bg: color-mix(in srgb, var(--colors-warning)   calc(var(--optical-opacityHigh) * 100%), transparent); }
+.button--fill-tonal.button--intent-error     { --btn-bg: color-mix(in srgb, var(--colors-error)     calc(var(--optical-opacityHigh) * 100%), transparent); }
 
 /* Outlined */
-.button--fill-outlined.button--intent-primary   { border-width: 1px; --btn-border: var(--colors-primary);       --btn-fg: var(--colors-primary); }
-.button--fill-outlined.button--intent-secondary { border-width: 1px; --btn-border: var(--colors-strokeDefault); --btn-fg: var(--colors-secondary); }
-.button--fill-outlined.button--intent-accent    { border-width: 1px; --btn-border: var(--colors-accent);        --btn-fg: var(--colors-accent); }
-.button--fill-outlined.button--intent-info      { border-width: 1px; --btn-border: var(--colors-info);          --btn-fg: var(--colors-info); }
-.button--fill-outlined.button--intent-success   { border-width: 1px; --btn-border: var(--colors-success);       --btn-fg: var(--colors-success); }
-.button--fill-outlined.button--intent-warning   { border-width: 1px; --btn-border: var(--colors-warning);       --btn-fg: var(--colors-warning); }
-.button--fill-outlined.button--intent-error     { border-width: 1px; --btn-border: var(--colors-error);         --btn-fg: var(--colors-error); }
+.button--fill-outlined.button--intent-primary   { border-width: 1px; --btn-border: var(--colors-primary); }
+.button--fill-outlined.button--intent-secondary { border-width: 1px; --btn-border: var(--colors-strokeDefault); }
+.button--fill-outlined.button--intent-accent    { border-width: 1px; --btn-border: var(--colors-accent); }
+.button--fill-outlined.button--intent-info      { border-width: 1px; --btn-border: var(--colors-info); }
+.button--fill-outlined.button--intent-success   { border-width: 1px; --btn-border: var(--colors-success); }
+.button--fill-outlined.button--intent-warning   { border-width: 1px; --btn-border: var(--colors-warning); }
+.button--fill-outlined.button--intent-error     { border-width: 1px; --btn-border: var(--colors-error); }
 
 /* Ghost */
-.button--fill-ghost.button--intent-primary   { --btn-fg: var(--colors-primary); }
-.button--fill-ghost.button--intent-secondary { --btn-fg: var(--colors-secondary); }
-.button--fill-ghost.button--intent-accent    { --btn-fg: var(--colors-accent); }
-.button--fill-ghost.button--intent-info      { --btn-fg: var(--colors-info); }
-.button--fill-ghost.button--intent-success   { --btn-fg: var(--colors-success); }
-.button--fill-ghost.button--intent-warning   { --btn-fg: var(--colors-warning); }
-.button--fill-ghost.button--intent-error     { --btn-fg: var(--colors-error); }
+/* Well isn't that funny */
+
+/* -- Foreground --------------------------------------------------------------------- */
+.button--foreground-primary { --btn-fg: var(--colors-textPrimary); }
+.button--foreground-secondary { --btn-fg: var(--colors-textSecondary); }
+.button--foreground-muted { --btn-fg: var(--colors-textMuted); }
+.button--foreground-inverse { --btn-fg: var(--colors-textInverse); }
+.button--foreground-accent { --btn-fg: var(--colors-accent); }
+.button--foreground-info { --btn-fg: var(--colors-info); }
+.button--foreground-success { --btn-fg: var(--colors-success); }
+.button--foreground-warning { --btn-fg: var(--colors-warning); }
+.button--foreground-error { --btn-fg: var(--colors-error); }
 
 /* Fit ------------------------------------------------------------------------------- */
 /* Container fitting put before the children so the latter wins
@@ -154,17 +154,22 @@
 
 /* -- Glass -------------------------------------------------------------------------- */
 .button.glass-button {
-  background-color: rgb(var(--glass-tone) / var(--glass-alpha));
+  background-color: color-mix(
+    in srgb,
+    var(--glass-tone, var(--colors-bgRaised))
+      calc(var(--glass-alpha, var(--optical-opacityHigh)) * 100%),
+    transparent
+  );
   backdrop-filter:
-    blur(var(--glass-blur))
+    blur(var(--glass-blur, var(--optical-blurMedium)))
     saturate(var(--glass-saturate, var(--optical-saturateSubtle)))
     brightness(var(--glass-brightness, var(--optical-brightnessNormal)));
   -webkit-backdrop-filter:
-    blur(var(--glass-blur))
+    blur(var(--glass-blur, var(--optical-blurMedium)))
     saturate(var(--glass-saturate, var(--optical-saturateSubtle)))
     brightness(var(--glass-brightness, var(--optical-brightnessNormal)));
 
-  color: var(--colors-textPrimary);
+  color: var(--btn-fg);
   border-width: var(--shape-strokeMedium);
   border-color: var(--colors-strokeSubtle);
   border-top-color: var(--colors-strokeStrong);

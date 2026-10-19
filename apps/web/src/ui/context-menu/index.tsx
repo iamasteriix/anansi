@@ -1,7 +1,40 @@
-import type { ContextMenuProps } from './types';
-import { useEffect, useRef, useState, } from 'react';
+import type { ElementChildren } from '../@core';
+import { createContext, useContext, useEffect, useRef, useState, } from 'react';
 import { Portal } from '../portal';
-import { useContextMenuContext } from './context';
+
+
+// Types ————————————————————————————————————————————————————————————————————————————————
+type ContextMenuPosition = {
+  x: number;
+  y: number;
+};
+
+export type ContextMenuState = {
+  isOpen: boolean;
+  position: ContextMenuPosition;
+  openMenu: (position: ContextMenuPosition) => void;
+  closeMenu: () => void;
+};
+
+export type ContextMenuTriggerProps = {
+  children: ElementChildren;
+};
+
+export type ContextMenuProps = {
+  children: ElementChildren;
+};
+
+
+// Utils ————————————————————————————————————————————————————————————————————————————————
+export const ContextMenuContext = createContext<ContextMenuState | null>(null);
+
+
+export const useContextMenuContext = (): ContextMenuState => {
+  const values = useContext(ContextMenuContext);
+  if (!values) throw new Error('ContextMenu subcomponents must be rendered within ContextMenu');
+  return values;
+}
+
 
 
 export const ContextMenu = ({

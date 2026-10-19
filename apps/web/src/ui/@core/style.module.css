@@ -38,7 +38,7 @@
 
 .press-element[aria-disabled='true'] {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: var(--optical-opacityLow);
 }
 
 .press-element:focus-visible {
@@ -58,7 +58,11 @@
 
   position: relative;
 
-  background-color: rgb(from var(--glass-tone) r g b / var(--glass-alpha));
+  background-color: color-mix(
+    in srgb,
+    var(--glass-tone) calc(var(--glass-alpha) * 100%),
+    transparent
+  );
 
   backdrop-filter:
     blur(var(--glass-blur))
@@ -117,14 +121,26 @@
 .glass--interactive {
   cursor: pointer;
   transition: box-shadow var(--motion-durationShort) ease;
-  box-shadow: inset 0 0 0 9999px rgb(from var(--colors-primary) r g b / 0);
+  box-shadow: inset 0 0 0 9999px color-mix(
+    in srgb,
+    var(--colors-primary) 0%,
+    transparent
+  );
 }
 .glass--interactive:hover {
-  box-shadow: inset 0 0 0 9999px rgb(from var(--colors-primary) r g b / var(--optical-opacityHigh));
+  box-shadow: inset 0 0 0 9999px color-mix(
+    in srgb,
+    var(--colors-primary) calc(var(--optical-opacityHigh) * 100%),
+    transparent
+  );
 }
 .glass--interactive:active,
 .glass--pressed {
-  box-shadow: inset 0 0 0 9999px rgb(from var(--colors-primary) r g b / var(--optical-opacityMedium));
+  box-shadow: inset 0 0 0 9999px color-mix(
+    in srgb,
+    var(--colors-primary) calc(var(--optical-opacityMedium) * 100%),
+    transparent
+  );
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -143,3 +159,22 @@
     -webkit-backdrop-filter: none;
   }
 }
+/* =================================================================================== */
+
+
+/* TEXT INPUT ======================================================================== */
+.text-input-element {
+  flex: 1;
+  min-inline-size: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  resize: none;
+  color: inherit;
+  font: inherit;
+  line-height: var(--typography-leadingNormal);
+}
+.text-input-element::placeholder { color: var(--colors-textMuted); }

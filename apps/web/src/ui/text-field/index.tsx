@@ -1,330 +1,260 @@
+import type { RefObject } from 'react';
 import type {
-  ChangeEvent, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, RefObject, UIEvent,
-} from 'react';
-import type {
-  GlassTextFieldProps, GlassTextFieldVariant, TextFieldProps, TextFieldVariant,
-} from './types';
-import { useCallback, useEffect, useRef } from 'react';
-import { resolveA11y, useMediaQuery } from '../@core';
-import { getAnchorOrdering, resolveBaseVariants, resolveGlassVariants } from './utils';
+  ElementChildren, TextInputElementProps, TsElevation, TsGlass, TsIntent, TsRadius,
+  TsSize,
+} from '../@core';
+import type { ViewProps, ViewVariant } from '../view';
+import type { IconProps } from '../icon';
+import type { ButtonProps } from '../button';
+import type { ImageProps } from '../image';
+import { createContext, useCallback, useContext, useEffect, useRef, } from 'react';
 import {
-  GlassTextFieldGroup, TextFieldGroup, TextFieldIcon, TextFieldLabel, TextFieldLeading,
-  TextFieldTrailing,
-} from './slot';
-import styles from './base.module.css';
+  createSlot, resolveGlassStyle, slotProp, SlotScopeProvider, TextInputElement, useSlots,
+  ViewElement,
+} from '../@core';
+import { Icon } from '../icon';
+import { Button } from '../button';
+import { Image } from '../image';
+import { View } from '../view';
+import { Text } from '../text';
+import styles from './style.module.css';
 
 
-const default_base_variant: TextFieldVariant = {
+// Types ————————————————————————————————————————————————————————————————————————————————
+export type TextFieldVariant = {
+  fill?: 'filled' | 'outlined' | 'ghost';
+  outline?: TsIntent;
+  elevation?: TsElevation;
+  shadow?: 'auto' | 'none';
+  size?: 'sm' | 'md' | 'lg';
+  radius?: TsRadius;
+  glass?: boolean | TsGlass;
+};
+
+export type TextFieldProps = TextInputElementProps & {
+  variant?: TextFieldVariant;
+};
+
+type TextFieldSlotAlignment = 'start' | 'end';
+type TextFieldSlotProps = { alignment?: TextFieldSlotAlignment; };
+
+type TextFieldSetProps = Omit<ViewProps, 'variant'> & {
+  variant?: TextFieldVariant;
+};
+
+type TextFieldFieldProps = Omit<ViewProps, 'variant'> & {
+  variant?: ViewVariant & { gap?: TsSize; };
+};
+
+
+// Utils ————————————————————————————————————————————————————————————————————————————————
+const TextFieldSetContext = createContext(false);
+
+
+export const resolveVariants = (variant: TextFieldVariant | undefined): string => {
+  const glass = resolveGlassStyle(variant?.glass);
+  return [
+    styles['text-field'],
+    !glass && styles[`text-field--fill-${variant?.fill ?? 'outlined'}`],
+    variant?.outline && styles[`text-field--outline-${variant.outline}`],
+    styles[`text-field--size-${variant?.size ?? 'md'}`],
+    variant?.radius && styles[`text-field--radius-${variant.radius}`],
+    variant?.elevation && styles[`text-field--elevation-${variant.elevation}`],
+    variant?.shadow === 'auto' && variant?.elevation && styles[`text-field--shadow-${variant.elevation}`],
+    glass,
+  ].filter(Boolean).join(' ');
+};
+
+
+/**
+ * Clicking dead space in the frame focuses the textarea. textarea and buttons keep their
+ * own behavior.
+ */
+export const useFocusOnPress = (frame: RefObject<HTMLDivElement | null>) => {
+  useEffect(() => {
+    const element = frame.current;
+    if (!element) return;
+    const handler = (event: MouseEvent) => {
+      if ((event.target as HTMLElement).closest('textarea, [role="button"]')) return;
+      element.querySelector('textarea')?.focus();
+    }
+    element.addEventListener('click', handler);
+    return () => {
+      element.removeEventListener('click', handler);
+    }
+  }, [frame]);
+}
+
+
+// Core —————————————————————————————————————————————————————————————————————————————————
+const default_variant: TextFieldVariant = {
   fill: 'outlined',
   outline: 'primary',
   size: 'md',
   radius: '2xl',
-  elevation: 'raised',
-  pin: 'bottom',
-};
-
-const default_glass_variant: GlassTextFieldVariant = {
-  tone: 'neutral',
-  intensity: 'base',
-  blur: 'md',
-  size: 'md',
-  radius: '2xl',
-  elevation: 'raised',
-  pin: 'bottom',
-};
-
-const parseTargetId = (id: string | undefined) => {
-  const parsed = parseInt(id || '', 10);
-  return Number.isNaN(parsed) ? null : parsed;
-};
-
-
-const TextFieldBase = ({
-  children, id, theme, style, a11y, testID, ref,
-  autoComplete, autoFocus, defaultValue, inputMode, maxLength, placeholder,
-  readOnly, submitBehavior, value,
-  onBlur, onChange, onChangeText, onFocus, onKeyPress, onPressIn, onPressOut, onScroll,
-  onSelectionChange, onSubmitEditing, onEndEditing, onContentSizeChange,
-  onLayout,
-  className,
-  rows = 1,
-  editable = true,
-}: Omit<TextFieldProps, 'variant'> & {
-  className: string;
-}) => {
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const setInputRef = useCallback(
-    (node: HTMLTextAreaElement | null) => {
-      inputRef.current = node;
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref && typeof ref === 'object') {
-        (ref as RefObject<HTMLTextAreaElement | null>).current = node;
-      }
-    },
-    [ref]
-  );
-
-  const handleContainerClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
-    if (event.target !== inputRef.current) inputRef.current?.focus();
-  }, []);
-
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      onChange?.(event);
-      onChangeText?.(event.target.value);
-    },
-    [onChange, onChangeText]
-  );
-
-  const handleFocus = useCallback(
-    (event: FocusEvent<HTMLTextAreaElement>) => {
-      onFocus?.(event);
-    },
-    [onFocus]
-  );
-
-  const handleBlur = useCallback(
-    (event: FocusEvent<HTMLTextAreaElement>) => {
-      onBlur?.(event);
-      onEndEditing?.();
-    },
-    [onBlur, onEndEditing]
-  );
-
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLTextAreaElement>) => {
-      onKeyPress?.(event);
-      if (event.key === 'Enter' && submitBehavior === 'submit' && !event.shiftKey) {
-        event.preventDefault();
-        onSubmitEditing?.({
-          ...event,
-          nativeEvent: {
-            text: event.currentTarget.value,
-            eventCount: event.eventPhase,
-            target: parseTargetId(event.currentTarget.id),
-          },
-        });
-      }
-    },
-    [onKeyPress, onSubmitEditing, submitBehavior]
-  );
-
-  const createPressPayload = (event: PointerEvent<HTMLTextAreaElement>, timestamp: number) => {
-    const payload = {
-      identifier: event.pointerId,
-      locationX: event.nativeEvent.offsetX,
-      locationY: event.nativeEvent.offsetY,
-      pageX: event.pageX,
-      pageY: event.pageY,
-      target: parseTargetId(event.currentTarget.id),
-      timestamp,
-      changedTouches: [] as any[],
-      touches: [] as any[],
-    };
-    payload.changedTouches = [payload];
-    payload.touches = [payload];
-    return payload;
-  };
-
-  const handlePointerDown = useCallback(
-    (event: PointerEvent<HTMLTextAreaElement>) => {
-      onPressIn?.({
-        ...event,
-        nativeEvent: createPressPayload(event, Date.now()),
-      });
-    },
-    [onPressIn]
-  );
-
-  const handlePointerUp = useCallback(
-    (event: PointerEvent<HTMLTextAreaElement>) => {
-      onPressOut?.({
-        ...event,
-        nativeEvent: createPressPayload(event, event.timeStamp),
-      });
-    },
-    [onPressOut]
-  );
-
-  const handleScroll = useCallback(
-    (event: UIEvent<HTMLTextAreaElement>) => {
-      onScroll?.({
-        ...event,
-        nativeEvent: {
-          contentOffset: {
-            x: event.currentTarget.scrollLeft,
-            y: event.currentTarget.scrollTop,
-          },
-        },
-      });
-    },
-    [onScroll]
-  );
-
-  // onSelectionChange — document-level selectionchange while focused
-  useEffect(() => {
-    if (!onSelectionChange) return;
-    const element = inputRef.current;
-    if (!element) return;
-
-    const handler = (event: Event) => {
-      if (document.activeElement !== element) return;
-      onSelectionChange({
-        ...event,
-        target: element,
-        currentTarget: element,
-        bubbles: event.bubbles,
-        cancelable: event.cancelable,
-        defaultPrevented: event.defaultPrevented,
-        eventPhase: event.eventPhase,
-        isTrusted: event.isTrusted,
-        timeStamp: event.timeStamp,
-        type: event.type,
-        nativeEvent: {
-          selection: {
-            start: element.selectionStart ?? 0,
-            end: element.selectionEnd ?? 0,
-          },
-        },
-        preventDefault: () => event.preventDefault(),
-        stopPropagation: () => event.stopPropagation(),
-        isDefaultPrevented: () => event.defaultPrevented,
-        isPropagationStopped: () => false,
-        persist: () => {},
-      });
-    };
-
-    document.addEventListener('selectionchange', handler);
-    return () => {
-      document.removeEventListener('selectionchange', handler);
-    };
-  }, [onSelectionChange]);
-
-  // onContentSizeChange — ResizeObserver on the textarea
-  useEffect(() => {
-    const element = inputRef.current;
-    if (!element || !onContentSizeChange) return;
-
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        onContentSizeChange({
-          nativeEvent: { contentSize: { width, height } },
-        } as any);
-      }
-    });
-
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-    };
-  }, [onContentSizeChange]);
-
-  // onLayout — ResizeObserver on the wrapper/textarea
-  useEffect(() => {
-    const element = containerRef.current || inputRef.current;
-    if (!element || !onLayout) return;
-
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width, height, x, y } = entry.contentRect;
-        onLayout({
-          nativeEvent: {
-            layout: { width, height, x, y },
-            target: parseTargetId(entry.target.id),
-          },
-        } as any);
-      }
-    });
-
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-    };
-  }, [onLayout]);
-
-  const { cssProperties } = useMediaQuery(theme, style);
-  const accessibility = resolveA11y(a11y);
-
-  const { leading, trailing } = getAnchorOrdering(children);
-
-  return (
-    <div
-      className={ className }
-      style={ cssProperties }
-      onClick={ handleContainerClick }
-      ref={ containerRef }
-    >
-      <span className={ styles['text-field__leading'] }>
-        { leading }
-      </span>
-      <textarea
-        className={ styles['text-field__input'] }
-        autoComplete={ autoComplete }
-        autoFocus={ autoFocus }
-        defaultValue={ defaultValue}
-        disabled={ !editable }
-        inputMode={ inputMode }
-        maxLength={ maxLength }
-        placeholder={ placeholder }
-        readOnly={ readOnly }
-        rows={ rows }
-        value={ value }
-        onChange={ handleChange }
-        onFocus={ handleFocus }
-        onBlur={ handleBlur }
-        onKeyDown={ handleKeyDown }
-        onPointerDown={ handlePointerDown }
-        onPointerUp={ handlePointerUp }
-        id={ id }
-        onScroll={ handleScroll }
-        data-testid={ testID }
-        ref={ setInputRef }
-        { ...accessibility }
-      />
-      <span className={ styles['text-field__trailing'] }>
-        { trailing }
-      </span>
-    </div>
-  );
 };
 
 
 export const TextField = ({
-  variant = default_base_variant,
-  ...rest
-}: TextFieldProps) => (
-  <TextFieldBase
-    { ...rest }
-    className={ resolveBaseVariants(variant) }
-  />
-);
+  id, theme, style, a11y, testID, ref,
+  autoComplete, autoFocus, defaultValue, editable, inputMode, maxLength, placeholder,
+  readOnly, rows, submitBehavior, value,
+  onBlur, onChange, onChangeText, onContentSizeChange, onEndEditing, onFocus, onKeyPress,
+  onLayout, onPressIn, onPressOut, onScroll, onSelectionChange, onSubmitEditing,
+  variant = default_variant,
+}: TextFieldProps) => {
+
+  const frameRef = useRef<HTMLDivElement>(null);
+  useFocusOnPress(frameRef);
+
+  const Spine = () => (
+    <TextInputElement
+      autoComplete={ autoComplete }
+      autoFocus={ autoFocus }
+      defaultValue={ defaultValue}
+      editable={ editable }
+      inputMode={ inputMode }
+      maxLength={ maxLength }
+      placeholder={ placeholder }
+      readOnly={ readOnly }
+      rows={ rows }
+      value={ value }
+      submitBehavior={ submitBehavior }
+      onChange={ onChange }
+      onChangeText={ onChangeText }
+      onFocus={ onFocus }
+      onBlur={ onBlur }
+      onSelectionChange={ onSelectionChange }
+      onPressIn={ onPressIn }
+      onPressOut={ onPressOut }
+      onKeyPress={ onKeyPress }
+      onSubmitEditing={ onSubmitEditing }
+      onEndEditing={ onEndEditing }
+      onLayout={ onLayout }
+      onContentSizeChange={ onContentSizeChange }
+      onScroll={ onScroll }
+      id={ id }
+      testID={ testID }
+      ref={ ref }
+      a11y={ a11y }
+    />
+  );
+
+  // with slots, set owns frame, so we return bare input
+  const isInSet = useContext(TextFieldSetContext);
+  if (isInSet) return <Spine/>;
+
+  return (
+    <ViewElement
+      classes={ resolveVariants(variant) }
+      theme={ theme }
+      style={ style }
+      ref={ frameRef }
+    >
+      <Spine/>
+    </ViewElement>
+  );
+}
 
 
-export const GlassTextField = ({
-  variant = default_glass_variant,
-  ...rest
-}: GlassTextFieldProps) => (
-  <TextFieldBase
-    { ...rest }
-    className={ resolveGlassVariants(variant) }
-  />
-);
+// Slots ————————————————————————————————————————————————————————————————————————————————
+TextField.Set = ({
+  children, id, theme, style, a11y, testID, ref,
+  variant = default_variant,
+}: TextFieldSetProps) => {
+
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  useFocusOnPress(frameRef);
+
+  // link set frame with consumer frame
+  const setFrame = useCallback((node: HTMLDivElement | null) => {
+    frameRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref]);
+
+  const slots = useSlots(children, ['slot']);
+  const startSlot: ElementChildren = [];
+  const endSlot: ElementChildren = [];
+  for (const element of slots.slot) {
+    const alignment = slotProp<TextFieldSlotAlignment>(element, 'alignment') ?? 'start';
+    (alignment === 'end' ? endSlot : startSlot).push(element);
+  }
+
+  return (
+    <SlotScopeProvider value='TextField'>
+      <TextFieldSetContext.Provider value={ true }>
+        <ViewElement
+          classes={ resolveVariants(variant) }
+          theme={ theme }
+          style={ style }
+          id={ id }
+          testID={ testID }
+          a11y={ a11y }
+          ref={ setFrame }
+        >
+          { startSlot.length > 0 &&
+              <ViewElement classes={ styles[`text-field__slot--start`] }>{ startSlot }</ViewElement>
+          }
+          { slots.default }
+          { endSlot.length > 0 &&
+              <ViewElement classes={ styles[`text-field__slot--end`] }>{ endSlot }</ViewElement>
+          }
+        </ViewElement>
+      </TextFieldSetContext.Provider>
+    </SlotScopeProvider>
+  );
+};
 
 
-/**
- * Namespacing
- */
-TextField.Group = TextFieldGroup;
-TextField.Label = TextFieldLabel;
-TextField.Leading = TextFieldLeading;
-TextField.Trailing = TextFieldTrailing;
-TextField.Icon = TextFieldIcon;
-GlassTextField.Group = GlassTextFieldGroup;
-GlassTextField.Label = TextFieldLabel;
-GlassTextField.Leading = TextFieldLeading;
-GlassTextField.Trailing = TextFieldTrailing;
-GlassTextField.Icon = TextFieldIcon;
+TextField.Icon = createSlot<
+  typeof Icon,
+  IconProps,
+  TextFieldSlotProps
+>(Icon, {
+  slotName: 'slot',
+  parentName: 'TextField',
+  slotProps: ['alignment'],
+});
+
+
+TextField.Button = createSlot<
+  typeof Button,
+  ButtonProps,
+  TextFieldSlotProps
+>(Button, {
+  slotName: 'slot',
+  parentName: 'TextField',
+  slotProps: ['alignment'],
+});
+
+
+TextField.Image = createSlot<
+  typeof Image,
+  ImageProps,
+  TextFieldSlotProps
+>(Image, {
+  slotName: 'slot',
+  parentName: 'TextField',
+  slotProps: ['alignment'],
+});
+
+
+TextField.Field = ({ children, id, variant, theme, style, a11y, testID, ref, }: TextFieldFieldProps) => {
+  return (
+    <View
+      id={ id }
+      variant={ variant }
+      theme={ theme }
+      style={ style }
+      a11y={ a11y }
+      testID={ testID }
+      ref={ ref }
+    >
+      { children }
+    </View>
+  );
+}
+
+
+TextField.Text = Text;
