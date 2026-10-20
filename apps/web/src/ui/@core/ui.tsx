@@ -356,7 +356,7 @@ export const TextInputElement = ({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    onKeyPress?.(event);
+    onKeyPress?.({ nativeEvent: { key: event.key, }});
     if (event.key === 'Enter' && submitBehavior === 'submit' && !event.shiftKey) {
       event.preventDefault();
       onSubmitEditing?.({

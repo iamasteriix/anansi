@@ -1,13 +1,14 @@
 import type { RefObject } from 'react';
 import type {
   ElementChildren, TextInputElementProps, TsElevation, TsGlass, TsIntent, TsRadius,
-  TsSize,
 } from '../@core';
-import type { ViewProps, ViewVariant } from '../view';
+import type { ViewProps, } from '../view';
 import type { IconProps } from '../icon';
 import type { ButtonProps } from '../button';
 import type { ImageProps } from '../image';
-import { createContext, useCallback, useContext, useEffect, useRef, } from 'react';
+import {
+  createContext, useCallback, useContext, useEffect, useMemo, useRef,
+} from 'react';
 import {
   createSlot, resolveGlassStyle, slotProp, SlotScopeProvider, TextInputElement, useSlots,
   ViewElement,
@@ -31,24 +32,21 @@ export type TextFieldVariant = {
   glass?: boolean | TsGlass;
 };
 
-export type TextFieldProps = TextInputElementProps & {
+export type TextFieldProps = Omit<ViewProps, 'variant'> & {
   variant?: TextFieldVariant;
+  label?: string;
 };
 
-type TextFieldSlotAlignment = 'start' | 'end';
-type TextFieldSlotProps = { alignment?: TextFieldSlotAlignment; };
+type TextFieldSlotProps = { alignment?: 'start' | 'end'; };
 
-type TextFieldSetProps = Omit<ViewProps, 'variant'> & {
-  variant?: TextFieldVariant;
-};
-
-type TextFieldFieldProps = Omit<ViewProps, 'variant'> & {
-  variant?: ViewVariant & { gap?: TsSize; };
-};
+type TextFieldContextValue = {
+  inputRef: RefObject<HTMLTextAreaElement | null>;
+  label?: string;
+}
 
 
 // Utils ————————————————————————————————————————————————————————————————————————————————
-const TextFieldSetContext = createContext(false);
+const TextFieldContext = createContext<TextFieldContextValue | null>(null);
 
 
 export const resolveVariants = (variant: TextFieldVariant | undefined): string => {
@@ -67,22 +65,25 @@ export const resolveVariants = (variant: TextFieldVariant | undefined): string =
 
 
 /**
- * Clicking dead space in the frame focuses the textarea. textarea and buttons keep their
+ * Clicking frame dead space focuses shared textarea. textarea and buttons keep their
  * own behavior.
  */
-export const useFocusOnPress = (frame: RefObject<HTMLDivElement | null>) => {
+export const useFocusOnPress = (
+  frameRef: RefObject<HTMLDivElement | null>,
+  inputRef: RefObject<HTMLTextAreaElement | null>,
+) => {
   useEffect(() => {
-    const element = frame.current;
+    const element = frameRef.current;
     if (!element) return;
-    const handler = (event: MouseEvent) => {
+    const handler = (event: PointerEvent) => {
       if ((event.target as HTMLElement).closest('textarea, [role="button"]')) return;
-      element.querySelector('textarea')?.focus();
+      inputRef.current?.focus();
     }
     element.addEventListener('click', handler);
     return () => {
       element.removeEventListener('click', handler);
     }
-  }, [frame]);
+  }, [frameRef, inputRef]);
 }
 
 
@@ -96,18 +97,83 @@ const default_variant: TextFieldVariant = {
 
 
 export const TextField = ({
+  children, label, id, theme, style, a11y, testID, ref,
+  variant = default_variant,
+}: TextFieldProps) => {
+
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  useFocusOnPress(frameRef, inputRef);
+
+  // link consumer ref with frame ref
+  const setRef = useCallback((node: HTMLDivElement | null) => {
+    frameRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref]);
+
+  const slots = useSlots(children, ['slot']);
+  const startSlot: ElementChildren = [];
+  const endSlot: ElementChildren = [];
+  for (const element of slots.slot) {
+    const alignment = slotProp<TextFieldSlotProps['alignment']>(element, 'alignment') ?? 'start';
+    (alignment === 'end' ? endSlot : startSlot).push(element);
+  }
+
+  const contextValue = useMemo(() => ({ inputRef, label, }), [inputRef, label]);
+  const accessibility = { role: 'group', ...a11y, };
+
+  return (
+    <SlotScopeProvider value='TextField'>
+      <ViewElement
+        classes={ resolveVariants(variant) }
+        theme={ theme }
+        style={ style }
+        id={ id }
+        testID={ testID }
+        a11y={ accessibility }
+        ref={ setRef }
+      >
+        { startSlot.length > 0 &&
+            <ViewElement classes={ styles[`text-field__slot--start`] }>{ startSlot }</ViewElement>
+        }
+        <TextFieldContext.Provider value={ contextValue }>
+          { slots.default }
+        </TextFieldContext.Provider>
+        { endSlot.length > 0 &&
+            <ViewElement classes={ styles[`text-field__slot--end`] }>{ endSlot }</ViewElement>
+        }
+      </ViewElement>
+    </SlotScopeProvider>
+  );
+}
+
+
+// Slots ————————————————————————————————————————————————————————————————————————————————
+TextField.Input = ({
   id, theme, style, a11y, testID, ref,
   autoComplete, autoFocus, defaultValue, editable, inputMode, maxLength, placeholder,
   readOnly, rows, submitBehavior, value,
   onBlur, onChange, onChangeText, onContentSizeChange, onEndEditing, onFocus, onKeyPress,
   onLayout, onPressIn, onPressOut, onScroll, onSelectionChange, onSubmitEditing,
-  variant = default_variant,
-}: TextFieldProps) => {
+}: TextInputElementProps) => {
 
-  const frameRef = useRef<HTMLDivElement>(null);
-  useFocusOnPress(frameRef);
+  const context = useContext(TextFieldContext);
+  if (!context) throw new Error('<TextField.Input> must be rendered inside <TextField>');
 
-  const Spine = () => (
+  // link consumer ref with frame ref
+  const setRef = useCallback((node: HTMLTextAreaElement | null) => {
+    context.inputRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref, context.inputRef]);
+
+  const accessibility = {
+    ...a11y,
+    label: a11y?.label ?? context.label,
+  };
+
+  return (
     <TextInputElement
       autoComplete={ autoComplete }
       autoFocus={ autoFocus }
@@ -135,76 +201,13 @@ export const TextField = ({
       onScroll={ onScroll }
       id={ id }
       testID={ testID }
-      ref={ ref }
-      a11y={ a11y }
-    />
-  );
-
-  // with slots, set owns frame, so we return bare input
-  const isInSet = useContext(TextFieldSetContext);
-  if (isInSet) return <Spine/>;
-
-  return (
-    <ViewElement
-      classes={ resolveVariants(variant) }
+      ref={ setRef }
+      a11y={ accessibility }
       theme={ theme }
       style={ style }
-      ref={ frameRef }
-    >
-      <Spine/>
-    </ViewElement>
+    />
   );
 }
-
-
-// Slots ————————————————————————————————————————————————————————————————————————————————
-TextField.Set = ({
-  children, id, theme, style, a11y, testID, ref,
-  variant = default_variant,
-}: TextFieldSetProps) => {
-
-  const frameRef = useRef<HTMLDivElement | null>(null);
-  useFocusOnPress(frameRef);
-
-  // link set frame with consumer frame
-  const setFrame = useCallback((node: HTMLDivElement | null) => {
-    frameRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
-
-  const slots = useSlots(children, ['slot']);
-  const startSlot: ElementChildren = [];
-  const endSlot: ElementChildren = [];
-  for (const element of slots.slot) {
-    const alignment = slotProp<TextFieldSlotAlignment>(element, 'alignment') ?? 'start';
-    (alignment === 'end' ? endSlot : startSlot).push(element);
-  }
-
-  return (
-    <SlotScopeProvider value='TextField'>
-      <TextFieldSetContext.Provider value={ true }>
-        <ViewElement
-          classes={ resolveVariants(variant) }
-          theme={ theme }
-          style={ style }
-          id={ id }
-          testID={ testID }
-          a11y={ a11y }
-          ref={ setFrame }
-        >
-          { startSlot.length > 0 &&
-              <ViewElement classes={ styles[`text-field__slot--start`] }>{ startSlot }</ViewElement>
-          }
-          { slots.default }
-          { endSlot.length > 0 &&
-              <ViewElement classes={ styles[`text-field__slot--end`] }>{ endSlot }</ViewElement>
-          }
-        </ViewElement>
-      </TextFieldSetContext.Provider>
-    </SlotScopeProvider>
-  );
-};
 
 
 TextField.Icon = createSlot<
@@ -240,21 +243,7 @@ TextField.Image = createSlot<
 });
 
 
-TextField.Field = ({ children, id, variant, theme, style, a11y, testID, ref, }: TextFieldFieldProps) => {
-  return (
-    <View
-      id={ id }
-      variant={ variant }
-      theme={ theme }
-      style={ style }
-      a11y={ a11y }
-      testID={ testID }
-      ref={ ref }
-    >
-      { children }
-    </View>
-  );
-}
+TextField.Field = View;
 
 
 TextField.Text = Text;

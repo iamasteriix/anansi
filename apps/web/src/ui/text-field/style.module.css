@@ -16,10 +16,6 @@
   padding-block: var(--tf-pad-block);
   padding-inline: var(--tf-pad-inline);
   gap: var(--tf-gap);
-  background-color: var(--tf-bg);
-  border-style: solid;
-  border-width: var(--shape-strokeMedium);
-  border-color: var(--tf-border);
   color: var(--colors-textPrimary);
   font-family: var(--typography-fontBody);
   font-size: var(--tf-font);
@@ -28,12 +24,28 @@
               background-color var(--motion-durationBase) ease;
 }
 
-.text-field:focus-within { border-color: var(--tf-focus); }
+/* Fill (variants own the box) ------------------------------------------------------- */
+.text-field--fill-outlined,
+.text-field--fill-filled,
+.text-field--fill-ghost {
+  background-color: var(--tf-bg);
+  border-style: solid;
+  border-width: var(--shape-strokeMedium);
+  border-color: var(--tf-border);
+}
 
-/* Fill ------------------------------------------------------------------------------ */
 .text-field--fill-outlined { --tf-bg: transparent; }
 .text-field--fill-filled   { --tf-bg: var(--colors-bgSurface); --tf-border: transparent; }
 .text-field--fill-ghost    { --tf-bg: transparent; --tf-border: transparent; border-width: 0; }
+
+.text-field--fill-outlined:focus-within,
+.text-field--fill-filled:focus-within {
+  border-color: var(--tf-focus);
+}
+.text-field--fill-ghost:focus-within {
+  outline: 1px solid var(--tf-focus);
+  outline-offset: 1px;
+}
 
 /* Focus color (outline) ------------------------------------------------------------- */
 .text-field--outline-primary   { --tf-focus: var(--colors-primary); }
@@ -69,9 +81,6 @@
 .text-field--shadow-medium { box-shadow: var(--elevation-shadowMedium); }
 .text-field--shadow-high   { box-shadow: var(--elevation-shadowHigh); }
 .text-field--shadow-max    { box-shadow: var(--elevation-shadowMax); }
-
-/* Glass: the core .glass class owns bg and border, so only focus is layered on ------ */
-.text-field.glass:focus-within { border-color: var(--tf-focus); border-top-color: var(--tf-focus); }
 
 /* Slot tracks (only rendered by Set when slots exist) ------------------------------- */
 .text-field__slot--start,

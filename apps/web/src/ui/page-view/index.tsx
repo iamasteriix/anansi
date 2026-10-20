@@ -55,14 +55,14 @@ export const PageView = ({
   children, id, theme, style, a11y, testID, ref, insets,
 }: PageViewProps) => {
 
-  const slots = useSlots(children, ['Toolbar']);
+  const slots = useSlots(children, ['toolbar']);
   const byEdge: Record<PageViewInset, ReactElement[]> = {
     top: [],
     bottom: [],
     start: [],
     end: [],
   };
-  for (const element of slots.Toolbar) {
+  for (const element of slots.toolbar) {
     const alignment = slotProp<PageViewSlotAlignment>(element, 'alignment') ?? 'top';
     byEdge[alignment].push(element);
   }
@@ -110,7 +110,7 @@ PageView.Toolbar = createSlot<
   PageViewSlotProps
 >(
   Toolbar, {
-    slotName: 'Toolbar',
+    slotName: 'toolbar',
     parentName: 'PageView',
     slotProps: ['alignment'],
     derive: (child, slot) => ({

@@ -178,3 +178,5 @@
   line-height: var(--typography-leadingNormal);
 }
 .text-input-element::placeholder { color: var(--colors-textMuted); }
+.text-input-element:has(textarea:disabled),
+.text-input-element:has(textarea[readonly]) { cursor: default; }
