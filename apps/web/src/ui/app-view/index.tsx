@@ -1,5 +1,5 @@
 import type { ElementProps } from '../@core';
-import { ThemeProvider, ViewElement, } from '../@core';
+import { LayerProvider, ThemeProvider, ViewElement, } from '../@core';
 import styles from './style.module.css';
 import '../assets/styles/fonts.css';
 import './style.css';
@@ -10,16 +10,18 @@ export const AppView = ({
 }: ElementProps) => {
   return (
     <ThemeProvider>
-      <ViewElement
-        classes={ styles['app-view'] }
-        theme={ theme }
-        style={ style }
-        a11y={ a11y }
-        testID={ testID }
-        id={ id }
-      >
-        { children }
-      </ViewElement>
+      <LayerProvider>
+        <ViewElement
+          classes={styles['app-view']}
+          theme={theme}
+          style={style}
+          a11y={a11y}
+          testID={testID}
+          id={id}
+        >
+          {children}
+        </ViewElement>
+      </LayerProvider>
     </ThemeProvider>
   );
 }

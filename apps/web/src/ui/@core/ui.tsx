@@ -1,22 +1,24 @@
 import type {
   ChangeEvent, ComponentProps, ComponentType, Context, CSSProperties, FocusEvent,
-  KeyboardEvent, PointerEvent, ReactElement, ReactNode, UIEvent,
+  KeyboardEvent, PointerEvent, ReactElement, ReactNode, Ref, UIEvent,
 } from 'react';
 import type {
   GroupContainerDerived, GroupItemContext, GroupItemDerived, GroupItemPosition,
   GroupItemProviderProps, GroupMemberMarker, GroupProps, GroupVariant, PressElementProps,
   PressElementState, PressEvent, ResponsiveProp, SlotMarker, TextInputElementProps,
   ThemeProviderProps, ThemesType, TsDirection, TsGlass, ViewElementProps,
+  LayerContextValue, LayerElementProps,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
   useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { ThemeContext, toCSSVariables, useMediaQuery } from './theme';
 import { resolveA11y } from './a11y';
 import { storageAdapter } from './storage';
 import { tokens } from './tokens';
-import { is_dev } from './constants';
+import { focusable_selector, is_dev } from './constants';
 import styles from './style.module.css';
 
 
@@ -714,3 +716,188 @@ export const createGroup = <V extends GroupVariant = GroupVariant>(
   return Group;
 }
 // ======================================================================================
+
+
+// LAYER ================================================================================
+const LayerContext = createContext<LayerContextValue | null>(null);
+
+
+export const LayerProvider = ({ children }: { children: ReactNode }) => {
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const zCounter = useRef(0);
+
+  const nextZ = useCallback(() => ++zCounter.current, []);
+  const release = () => {}  // implement once we have nested menus
+
+  const value = useMemo(() => ({ container, nextZ, release, }), [container, nextZ, release]);
+
+  return (
+    <LayerContext.Provider value={ value }>
+      { children }
+      <div
+        className={ styles['layer-provider'] }
+        ref={ setContainer }
+        data-layer-host=''
+      />
+    </LayerContext.Provider>
+  );
+}
+
+
+export const useLayer = (): LayerContextValue => {
+  const layer = useContext(LayerContext);
+  if (layer) return layer;
+  
+  // fallback: portal to `body` and isolated z-counter
+  const createNextZ = () => {
+    let z = 1000;
+    return () => ++z;
+  }
+  return {
+    container: typeof document !== 'undefined' ? document.body : null,
+    nextZ: createNextZ(),
+    release: () => {},
+  };
+}
+
+
+export const LayerElement = ({
+  children, id, theme, style, a11y, testID, ref,
+  open,
+  onDismiss,
+  dismissOnOutside = true,
+  dismissOnEscape = true,
+  trapFocus = true,
+  restoreFocus = true,
+  modal = false,
+}: LayerElementProps) => {
+  
+  const { container, nextZ, } = useLayer();
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const restoreRef = useRef<HTMLDivElement | null>(null);
+  const zRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!open) return;
+    zRef.current = nextZ();
+    restoreRef.current = document.activeElement as HTMLDivElement | null;
+    if (trapFocus && panelRef.current) getFirstFocusableElement(panelRef.current);
+    return () => {
+      if (restoreFocus) restoreRef.current?.focus?.();
+    }
+  }, [open, nextZ, trapFocus, restoreFocus]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (dismissOnEscape && event.key === 'Escape') {
+        event.stopPropagation();
+        onDismiss?.();
+      }
+      if (trapFocus && event.key === 'Tab') trapWithTabKey(event, panelRef.current);
+    }
+    const onDown = (event: PointerEvent) => {
+      if (!dismissOnOutside) return;
+      if (panelRef.current && !(panelRef.current.contains(event.target as Node))) onDismiss?.();
+    }
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDown, true);
+    }
+  }, [open, dismissOnEscape, dismissOnOutside, trapFocus, onDismiss]);
+
+  if (!open || !container) return null;
+
+  // ooh, this panel
+  const panel = (
+    <>
+      { modal &&
+        <div
+          className={ styles['layer-element__modal-scrim'] }
+          onPointerDown={ onDismiss }
+        />
+      }
+      <ViewElement
+        theme={ theme }
+        style={{
+          ...style,
+          position: 'absolute',
+          zIndex: zRef.current,
+          pointerEvents: 'auto',
+        }}
+        a11y={{
+          role: modal ? 'dialog' : a11y?.role,
+          hidden: false,
+        }}
+        id={ id }
+        testID={ testID }
+        ref={ mergeRefs(panelRef, ref) }
+      >
+        { children }
+      </ViewElement>
+    </>
+  );
+  return createPortal(panel, container);
+}
+
+
+/**
+ * Runs `focusable_selector` against the panel (what panel?) to build the list the focus
+ * trap cycles through.
+ */
+const getFocusable = (root: HTMLElement): HTMLElement[] => {
+  return Array.from(root.querySelectorAll<HTMLElement>(focusable_selector))
+    .filter(element => (
+      !element.hasAttribute('inert') &&
+      element.getAttribute('aria-hidden') !== 'true' &&
+      (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0)
+    ));
+}
+
+
+const getFirstFocusableElement = (root: HTMLElement) => {
+  const [first] = getFocusable(root);
+  if (first) return first.focus();
+  if (!root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1');  // fallback: make the panel itself focusable so the trap has an anchor
+  root.focus();
+}
+
+const trapWithTabKey = (
+  event: KeyboardEvent,
+  root: HTMLElement | null,
+) => {
+  if (!root) return;
+  const items = getFocusable(root);
+  if (items.length === 0) {
+    event.preventDefault();
+    root.focus();
+    return;
+  }
+  const first = items[0];
+  const last = items[items.length -1];
+  const active = document.activeElement;
+  const outside = !active || !root.contains(active);
+
+  if (
+    event.shiftKey &&
+    (active === first || active === root || outside)
+  ) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (active === last || outside)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+
+const mergeRefs = <T extends Element>(...refs: Array<Ref<T> | undefined | null>) => (
+  (node: T | null) => {
+    for (const ref of refs) {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    }
+  }
+);

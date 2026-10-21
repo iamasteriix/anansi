@@ -352,3 +352,19 @@ export type TextInputElementProps = Omit<ElementProps, 'children'> & {
   onLayout?: (event: NativeEvent<LayoutEvent>) => void;
   ref?: Ref<HTMLTextAreaElement>;
 };
+
+export type LayerContextValue = {
+  container: HTMLElement | null;
+  nextZ: () => number;
+  release: (z: number) => void;
+};
+
+export type LayerElementProps = ViewElementProps & {
+  open: boolean;
+  onDismiss?: () => void;
+  dismissOnOutside?: boolean;
+  dismissOnEscape?: boolean;
+  trapFocus?: boolean;
+  restoreFocus?: boolean;
+  modal?: boolean;
+};

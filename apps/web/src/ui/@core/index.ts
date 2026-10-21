@@ -16,7 +16,7 @@ export { resolveThemeSheet, ThemeSheet, useMediaQuery, useTheme, } from './theme
 export {
   ThemeProvider,
   ViewElement, PressElement, useSlots, createSlot, slotProp, SlotScopeProvider,
-  createGroup, useGroupItem, GroupItemProvider, TextInputElement,
+  createGroup, useGroupItem, GroupItemProvider, TextInputElement, LayerProvider,
   resolveGlassStyle,
 } from './ui';
 

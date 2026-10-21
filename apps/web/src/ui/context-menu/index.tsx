@@ -1,6 +1,7 @@
+import type { KeyboardEvent, MouseEvent } from 'react';
 import type { ElementChildren } from '../@core';
-import { createContext, useContext, useEffect, useRef, useState, } from 'react';
-import { Portal } from '../portal';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, } from 'react';
+import { Portal, ViewElement } from '../@core';
 
 
 // Types ————————————————————————————————————————————————————————————————————————————————
@@ -31,12 +32,51 @@ export const ContextMenuContext = createContext<ContextMenuState | null>(null);
 
 export const useContextMenuContext = (): ContextMenuState => {
   const values = useContext(ContextMenuContext);
-  if (!values) throw new Error('ContextMenu subcomponents must be rendered within ContextMenu');
+  if (!values) throw new Error('<ContextMenu> subcomponents must be rendered within <ContextMenu>');
   return values;
 }
 
 
+export const ContextMenuTrigger = ({
+  children,
+}: ContextMenuTriggerProps) => {
 
+  const { openMenu, } = useContextMenuContext();
+
+  const handleContextMenu = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    openMenu({
+      x: event.pageX,
+      y: event.pageY,
+    });
+  }, [openMenu]);
+
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+    if (
+      (event.shiftKey && event.key === 'F10') ||
+      event.key === 'ContextMenu'
+    ) {
+      event.preventDefault();
+      const rect = event.currentTarget.getBoundingClientRect();
+      openMenu({
+        x: rect.left +window.scrollX,
+        y: rect.top +window.scrollY,
+      });
+    }
+  }, [openMenu]);
+
+  return (
+    <div
+      onContextMenu={ handleContextMenu }
+      onKeyDown={ handleKeyDown }
+    >
+      { children }
+    </div>
+  );
+}
+
+
+// Core —————————————————————————————————————————————————————————————————————————————————
 export const ContextMenu = ({
   children,
 }: ContextMenuProps) => {
@@ -77,7 +117,7 @@ export const ContextMenu = ({
 
   return (
     <Portal>
-      <div
+      <ViewElement
         ref={ menuRef }
         style={{
           position: 'absolute',
@@ -86,7 +126,7 @@ export const ContextMenu = ({
         }}
       >
         { children }
-      </div>
+      </ViewElement>
     </Portal>
   );
 }

@@ -179,3 +179,22 @@ export const default_breakpoints: Breakpoints = {
 export const breakpoint_list: BreakpointType[] = ['cinema', 'compact', 'extended', 'large', 'small', 'regular', 'ultra'];
 
 export const is_dev = import.meta.env.DEV;
+
+/**
+ * CSS selector list that matches every element a keyboard user can land on with the Tab
+ * key. Note that this is a pragmatic approximation that can be ***supplemented*** with
+ * the more robust `inert` attribute.
+ */
+export const focusable_selector = [
+  'a[href]',
+  'area[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'iframe',
+  'summary',
+  '[contenteditable=""]',
+  '[contenteditable="true"]',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');

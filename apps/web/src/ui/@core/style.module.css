@@ -180,3 +180,24 @@
 .text-input-element::placeholder { color: var(--colors-textMuted); }
 .text-input-element:has(textarea:disabled),
 .text-input-element:has(textarea[readonly]) { cursor: default; }
+/* =================================================================================== */
+
+
+/* LAYER ============================================================================= */
+.layer-provider {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.layer-element__modal-scrim {
+  position: fixed;
+  inset: 0;
+  background-color: color-mix(
+    in srgb,
+    var(--colors-bgOverlay) calc(var(--optical-opacityMedium) *100%),
+    transparent
+  );
+  pointer-events: auto;
+}
