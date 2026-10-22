@@ -6,12 +6,10 @@ import type { ViewProps, } from '../view';
 import type { IconProps } from '../icon';
 import type { ButtonProps } from '../button';
 import type { ImageProps } from '../image';
+import { createContext, useContext, useEffect, useMemo, useRef, } from 'react';
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useRef,
-} from 'react';
-import {
-  createSlot, resolveGlassStyle, slotProp, SlotScopeProvider, TextInputElement, useSlots,
-  ViewElement,
+  createSlot, mergeRefs, resolveGlassStyle, slotProp, SlotScopeProvider,
+  TextInputElement, useSlots, ViewElement,
 } from '../@core';
 import { Icon } from '../icon';
 import { Button } from '../button';
@@ -46,9 +44,6 @@ type TextFieldContextValue = {
 
 
 // Utils ————————————————————————————————————————————————————————————————————————————————
-const TextFieldContext = createContext<TextFieldContextValue | null>(null);
-
-
 export const resolveVariants = (variant: TextFieldVariant | undefined): string => {
   const glass = resolveGlassStyle(variant?.glass);
   return [
@@ -88,6 +83,9 @@ export const useFocusOnPress = (
 
 
 // Core —————————————————————————————————————————————————————————————————————————————————
+const TextFieldContext = createContext<TextFieldContextValue | null>(null);
+
+
 const default_variant: TextFieldVariant = {
   fill: 'outlined',
   outline: 'primary',
@@ -103,14 +101,8 @@ export const TextField = ({
 
   const frameRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const elementRef = useMemo(() => mergeRefs(frameRef, ref), [ref]);
   useFocusOnPress(frameRef, inputRef);
-
-  // link consumer ref with frame ref
-  const setRef = useCallback((node: HTMLDivElement | null) => {
-    frameRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
 
   const slots = useSlots(children, ['slot']);
   const startSlot: ElementChildren = [];
@@ -132,7 +124,7 @@ export const TextField = ({
         id={ id }
         testID={ testID }
         a11y={ accessibility }
-        ref={ setRef }
+        ref={ elementRef }
       >
         { startSlot.length > 0 &&
             <ViewElement classes={ styles[`text-field__slot--start`] }>{ startSlot }</ViewElement>
@@ -160,13 +152,7 @@ TextField.Input = ({
 
   const context = useContext(TextFieldContext);
   if (!context) throw new Error('<TextField.Input> must be rendered inside <TextField>');
-
-  // link consumer ref with frame ref
-  const setRef = useCallback((node: HTMLTextAreaElement | null) => {
-    context.inputRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) ref.current = node;
-  }, [ref, context.inputRef]);
+  const elementRef = useMemo(() => mergeRefs(context.inputRef, ref), [ref, context.inputRef]);
 
   const accessibility = {
     ...a11y,
@@ -201,7 +187,7 @@ TextField.Input = ({
       onScroll={ onScroll }
       id={ id }
       testID={ testID }
-      ref={ setRef }
+      ref={ elementRef }
       a11y={ accessibility }
       theme={ theme }
       style={ style }

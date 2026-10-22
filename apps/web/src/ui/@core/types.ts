@@ -29,7 +29,6 @@ export type ThemeTokensType = {
 
 
 // THEME: Styles ========================================================================
-export type StyleValue = string | number | undefined;
 export type TsDisplay = 'flex' | 'none';
 export type TsFlex = 'auto' | 'none';
 export type TsAlign = 'start' | 'end' | 'center' | 'stretch';
@@ -207,15 +206,13 @@ export type StorageAdapter = {
 
 
 // OFFICIAL =============================================================================
+export type ViewportCoords = { x: number; y: number; };
+export type ContentSize = { width: number; height: number; };
+
 export type TargetEvent = { target: number | null | undefined; };
 
 export type LayoutEvent = {
-  layout: {
-    width: number,
-    height: number,
-    x: number,
-    y: number,
-  },
+  layout: ViewportCoords & ContentSize,
   target: number | null | undefined,
 };
 
@@ -239,9 +236,9 @@ export type TextEventPayload = TargetEvent & {
   text: string;
   eventCount: number; // sequence counter for native-to-JS bridge sync (not available on web, 0 is fallback)
 };
-export type ContentSizeEventPayload = { contentSize: { width: number; height: number; }};
+export type ContentSizeEventPayload = { contentSize: ContentSize };
 export type KeyEventPayload = { key: string };
-export type ScrollEventPayload = { contentOffset: { x: number; y: number; }};
+export type ScrollEventPayload = { contentOffset: ViewportCoords; };
 export type SelectionEventPayload = { selection: { start: number; end: number; }};
 // ======================================================================================
 
@@ -367,4 +364,91 @@ export type LayerElementProps = ViewElementProps & {
   trapFocus?: boolean;
   restoreFocus?: boolean;
   modal?: boolean;
+};
+
+export type Placement =
+  | 'top'    | 'top-start'    | 'top-end'
+  | 'bottom' | 'bottom-start' | 'bottom-end'
+  | 'left'   | 'left-start'   | 'left-end'
+  | 'right'  | 'right-start'  | 'right-end';
+export type Side = 'top' | 'bottom' | 'left' | 'right';
+export type Align = 'start' | 'center' | 'end';
+export type Rect = ViewportCoords & ContentSize;
+export type Anchor =
+  | HTMLElement
+  | { current: HTMLElement | null }
+  | null;
+
+export type HoverElementProps = Omit<LayerElementProps, 'modal'> & {
+  anchor: Anchor;
+  placement?: Placement;
+  offset?: number;
+  flip?: boolean;
+  shift?: boolean;
+  matchAnchorWidth?: boolean;
+};
+
+export type ComputePositionOptions = {
+  anchor: Rect;
+  panel: ContentSize;
+  placement: Placement;
+  offset: number;
+  flip: boolean;
+  shift: boolean;
+  matchAnchorWidth: boolean;
+  contentSize: ContentSize;
+};
+
+export type ComputePositionResult = ViewportCoords & { placement: Placement; };
+
+export type HoverListItemHookOptions = {
+  index?: number; // required for virtualized lists
+  disabled?: boolean;
+  label?: string; // fallback announce text if ally.label isn't set
+};
+
+export type HoverListItemHookHandle = {
+  index: number;
+  active: boolean;
+  ref: (element: HTMLElement | null) => void;
+  itemProps: {
+    id: string;
+    tabIndex: 0 | -1;
+    onFocus: () => void;
+  };
+};
+
+export type HoverElementNavMode = 'none' | 'focus' | 'virtual';
+
+export type HoverElementContextValue = {
+  navMode: HoverElementNavMode;
+  activeIndex: number;
+  setActive: (i: number) => void;
+  register: (opts: HoverListItemHookOptions) => {
+    index: number;
+    unregister: () => void;
+  };
+  setElement: (
+    index: number,
+    element: HTMLElement | null
+  ) => void;
+  getId: (index: number) => string;
+};
+
+type HoverListItem = {
+  index: number;
+  element: HTMLElement | null;
+  disabled: boolean;
+  label?: string;
+};
+
+export type HoverListNavHookOptions = {
+  navMode: HoverElementNavMode;
+  count: number;
+  getId: (i: number) => string;
+  items: Map<number, HoverListItem>;
+  activeIndex?: number;
+  defaultActiveIndex?: number;
+  onActiveIndexChange?: (i: number) => void;
+  onCommit?: (i: number) => void;
 };

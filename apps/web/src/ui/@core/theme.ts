@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type {
-  StyleValue, TsColor, TsElevation, TsTypeface, TsFontSize, TsFontWeight, TsIntent,
+  TsColor, TsElevation, TsTypeface, TsFontSize, TsFontWeight, TsIntent,
   TSProperties, TsRadius, TsShadow, TsStrokeColor, TsStrokeWeight, TsSize,
   TsSurface, TsTracking,
   BreakpointType, ThemeTokensType, ResponsiveProp, BreakpointOptions, MediaQueryHook,
@@ -92,7 +92,7 @@ const hasAttribute = (
 const resolveThemeSheetValue = (
   key: keyof TSProperties,
   value: any,
-): StyleValue => {
+): string | number | undefined => {
   if (value === undefined || value === null) return undefined;
 
   // elevation
@@ -158,7 +158,7 @@ export const resolveThemeSheet = (
   // mobile-first means we fall back to smallest breakpoint to prevent flash
   const currentBreakpoint = breakpoint ?? breakpointsSorted[0].key;
 
-  const styles: Record<string, StyleValue> = {};
+  const styles: Record<string, string | number | undefined> = {};
 
   // resolve each responsive prop to a single value at the current breakpoint
   const tsKeys = Object.keys(theme) as Array<keyof TSProperties>;

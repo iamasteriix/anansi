@@ -10,18 +10,18 @@ export const AppView = ({
 }: ElementProps) => {
   return (
     <ThemeProvider>
-      <LayerProvider>
-        <ViewElement
-          classes={styles['app-view']}
-          theme={theme}
-          style={style}
-          a11y={a11y}
-          testID={testID}
-          id={id}
-        >
-          {children}
-        </ViewElement>
-      </LayerProvider>
+    <LayerProvider>
+      <ViewElement
+        classes={styles['app-view']}
+        theme={theme}
+        style={style}
+        a11y={a11y}
+        testID={testID}
+        id={id}
+      >
+        {children}
+      </ViewElement>
+    </LayerProvider>
     </ThemeProvider>
   );
 }

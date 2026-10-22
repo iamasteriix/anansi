@@ -33,9 +33,6 @@ export type TextProps = Omit<ElementProps, 'children'> & {
 
 
 // Utils ————————————————————————————————————————————————————————————————————————————————
-export const TextContext = createContext(false);
-
-
 export const resolveVariants = (variant: TextVariant | undefined): string => {
   return [
     styles.text,
@@ -60,6 +57,9 @@ export const resolveClampStyle = (lines?: number): CSSProperties => {
 
 
 // Core —————————————————————————————————————————————————————————————————————————————————
+export const TextContext = createContext(false);
+
+
 export const Text = ({
   children, id, lines, theme, style, variant, testID, a11y, ref,
 }: TextProps) => {

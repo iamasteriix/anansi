@@ -5,7 +5,8 @@ export type {
   StorageAdapter, StorageTopics,
   ElementChildren, ElementProps, ViewElementProps, PressElementProps, LayoutEvent,
   PressEvent, TargetEvent, PressElementState, GroupVariant, GroupItemContext,
-  TextInputElementProps,
+  TextInputElementProps, LayerElementProps, ViewportCoords, ContentSize,
+  HoverElementNavMode, HoverElementProps,
   A11yProps,
 } from './types';
 
@@ -14,10 +15,12 @@ export { storageAdapter, } from './storage';
 export { tokens, } from './tokens';
 export { resolveThemeSheet, ThemeSheet, useMediaQuery, useTheme, } from './theme';
 export {
-  ThemeProvider,
-  ViewElement, PressElement, useSlots, createSlot, slotProp, SlotScopeProvider,
-  createGroup, useGroupItem, GroupItemProvider, TextInputElement, LayerProvider,
-  resolveGlassStyle,
+  ThemeProvider, SlotScopeProvider, GroupItemProvider, LayerProvider,
+  HoverScopeProvider,
+  ViewElement, PressElement, TextInputElement, HoverElement,
+  useSlots, createSlot, slotProp, createGroup, useGroupItem, useHoverListItem,
+  useHoverListNavigation, useLayer,
+  resolveGlassStyle, mergeRefs, flattenChildren,
 } from './ui';
 
 import styles from './style.module.css';

@@ -7,7 +7,10 @@ import type {
   GroupItemProviderProps, GroupMemberMarker, GroupProps, GroupVariant, PressElementProps,
   PressElementState, PressEvent, ResponsiveProp, SlotMarker, TextInputElementProps,
   ThemeProviderProps, ThemesType, TsDirection, TsGlass, ViewElementProps,
-  LayerContextValue, LayerElementProps,
+  LayerContextValue, LayerElementProps, HoverElementProps, Placement,
+  ViewportCoords, ContentSize, Side, ComputePositionOptions, ComputePositionResult,
+  Align, Anchor, Rect, HoverListItemHookOptions, HoverListItemHookHandle,
+  HoverElementContextValue, HoverListNavHookOptions,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
@@ -37,7 +40,7 @@ export const resolveGlassStyle = (
 }
 
 
-const flattenChildren = (children: ReactNode): ReactElement[] => {
+export const flattenChildren = (children: ReactNode): ReactElement[] => {
   const stack = Children.toArray(children)
     .reverse()
     .map(node => ({ node, prefix: '' }));
@@ -96,6 +99,16 @@ const keyboardPressPayload = (event: KeyboardEvent<HTMLElement>): PressEvent => 
   changedTouches: [],
   touches: [],
 });
+
+
+export const mergeRefs = <T extends Element>(...refs: Array<Ref<T> | undefined | null>) => (
+  (node: T | null) => {
+    for (const ref of refs) {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    }
+  }
+);
 // ======================================================================================
 
 
@@ -270,11 +283,7 @@ export const TextInputElement = ({
 }: TextInputElementProps & { classes?: string }) => {
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const setRef = useCallback((node: HTMLTextAreaElement | null) => {
-    inputRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
+  const elementRef = useMemo(() => mergeRefs(inputRef, ref), [ref]);
 
   // document-level selectionchange filtered to this element
   useEffect(() => {
@@ -300,15 +309,15 @@ export const TextInputElement = ({
   useEffect(() => {
     const element = inputRef.current;
     if (!element || !onContentSizeChange) return;
-    const observer = new ResizeObserver(entries => entries.forEach(entry => {
+    const resizeObserver = new ResizeObserver(entries => entries.forEach(entry => {
       const { width, height } = entry.contentRect;
       onContentSizeChange({
         nativeEvent: { contentSize: { width, height }},
       });
     }));
-    observer.observe(element);
+    resizeObserver.observe(element);
     return () => {
-      observer.disconnect();
+      resizeObserver.disconnect();
     }
   }, [onContentSizeChange]);
 
@@ -316,7 +325,7 @@ export const TextInputElement = ({
   useEffect(() => {
     const element = inputRef.current;
     if (!element || !onLayout) return;
-    const observer = new ResizeObserver(entries => entries.forEach(entry => {
+    const resizeObserver = new ResizeObserver(entries => entries.forEach(entry => {
       const { width, height, x, y } = entry.contentRect;
       onLayout({
         nativeEvent: {
@@ -325,9 +334,9 @@ export const TextInputElement = ({
         },
       });
     }));
-    observer.observe(element);
+    resizeObserver.observe(element);
     return () => {
-      observer.disconnect();
+      resizeObserver.disconnect();
     }
   }, [onLayout]);
 
@@ -413,7 +422,7 @@ export const TextInputElement = ({
       id={ id }
       onScroll={ handleScroll }
       data-testid={ testID }
-      ref={ setRef }
+      ref={ elementRef }
       { ...accessibility }
     />
   );
@@ -749,13 +758,12 @@ export const useLayer = (): LayerContextValue => {
   if (layer) return layer;
   
   // fallback: portal to `body` and isolated z-counter
-  const createNextZ = () => {
-    let z = 1000;
-    return () => ++z;
-  }
   return {
     container: typeof document !== 'undefined' ? document.body : null,
-    nextZ: createNextZ(),
+    nextZ: (() => {
+      let z = 1000;
+      return () => ++z;
+    })(),
     release: () => {},
   };
 }
@@ -810,6 +818,8 @@ export const LayerElement = ({
 
   if (!open || !container) return null;
 
+  const layerRef = useMemo(() => mergeRefs(panelRef, ref), [ref]);
+
   // ooh, this panel
   const panel = (
     <>
@@ -833,7 +843,7 @@ export const LayerElement = ({
         }}
         id={ id }
         testID={ testID }
-        ref={ mergeRefs(panelRef, ref) }
+        ref={ layerRef }
       >
         { children }
       </ViewElement>
@@ -891,13 +901,347 @@ const trapWithTabKey = (
     first.focus();
   }
 }
+// ======================================================================================
 
 
-const mergeRefs = <T extends Element>(...refs: Array<Ref<T> | undefined | null>) => (
-  (node: T | null) => {
-    for (const ref of refs) {
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
+// HOVER ================================================================================
+const flip_side: Record<Side, Side> = {
+  top: 'bottom',
+  right: 'left',
+  bottom: 'top',
+  left: 'right',
+};
+
+const readAnchorRect = (anchor: Anchor): Rect | null => {
+  if (!anchor) return null;
+  const element = anchor instanceof HTMLElement ? anchor : anchor.current;  // preferred over 'current' in anchor for some reason
+  if (!element || !element.isConnected) return null;  // return null because anchor may unmount between open and measure
+  const rect = element.getBoundingClientRect();
+  return {
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+
+const parsePlacement = (placement: Placement): [Side, Align] => {
+  const [side, align] = placement.split('-') as [Side, Align];
+  return [side, align];
+}
+
+
+const formatPlacement = (
+  side: Side,
+  align: Align,
+): Placement => (align === 'center' ? side : `${side}-${align}`);
+
+
+const clamp = (
+  coordPoint: number,
+  min: number,
+  max: number
+) => Math.min(Math.max(coordPoint, min), max);
+
+
+const getRawCoords = (
+  {
+    x: anchorX,
+    y: anchorY,
+    width: anchorWidth,
+    height: anchorHeight,
+  }: Rect,
+  panelWidth: number,
+  panelHeight: number,
+  side: Side,
+  align: Align,
+  offset: number,
+): ViewportCoords => {
+  let x = 0, y = 0;
+
+  if (side === 'top')    y = anchorY -panelHeight -offset;
+  if (side === 'bottom') y = anchorY +anchorHeight +offset;
+  if (side === 'left')   x = anchorX -panelWidth -offset;
+  if (side === 'right')  x = anchorX +anchorWidth +offset;
+
+  // cross-axis alignment
+  if (side === 'top' || side === 'bottom') {
+    if (align === 'start') x = anchorX;
+    else if (align === 'end') x = anchorX +anchorWidth -panelWidth;
+    else x = anchorX +(anchorWidth -panelWidth) /2;
+  } else {
+    if (align === 'start') y = anchorY;
+    else if (align === 'end') y = anchorY +anchorHeight -panelHeight;
+    else y = anchorY +(anchorHeight - panelHeight) /2;
+  }
+
+  return { x, y, };
+};
+
+
+const primaryOverflow = (
+  position: ViewportCoords,
+  panelWidth: number,
+  panelHeight: number,
+  side: Side,
+  contentSize: ContentSize,
+): number => {
+  switch (side) {
+    case 'top':    return Math.max(0, -position.y);
+    case 'bottom': return Math.max(0, position.y +panelHeight -contentSize.height);
+    case 'left':   return Math.max(0, -position.x);
+    case 'right':  return Math.max(0, position.x +panelWidth -contentSize.width);
+  }
+};
+
+
+const computePosition = ({
+  anchor, panel, placement, offset, flip, shift, matchAnchorWidth, contentSize,
+}: ComputePositionOptions): ComputePositionResult => {
+  const [side, align] = parsePlacement(placement);
+  const panelWidth = matchAnchorWidth ? anchor.width : panel.width;
+  const panelHeight = panel.height;
+
+  let resolvedSide = side;
+  let position = getRawCoords(anchor, panelWidth, panelHeight, side, align, offset);
+
+  if (flip) {
+    const here = primaryOverflow(position, panelWidth, panelHeight, side, contentSize);
+    if (here > 0) {
+      const oppositeSide = flip_side[side];
+      const flippedPosition = getRawCoords(anchor, panelWidth, panelHeight, oppositeSide, align, offset);
+      const there = primaryOverflow(flippedPosition, panelWidth, panelHeight, oppositeSide, contentSize);
+      if (there < here) {
+        resolvedSide = oppositeSide;
+        position = flippedPosition;
+      }
     }
   }
-);
+
+  if (shift) {
+    if (resolvedSide === 'top' || resolvedSide === 'bottom') position.x = clamp(position.x, 0, Math.max(0, contentSize.width -panelWidth));
+    else position.y = clamp(position.y, 0, Math.max(0, contentSize.height -panelHeight));
+  }
+
+  return {
+    x: position.x,
+    y: position.y,
+    placement: formatPlacement(resolvedSide, align),
+  };
+}
+
+
+export const HoverElement = ({
+  children, id, theme, style, a11y, testID, ref,
+  anchor, open, 
+  onDismiss,
+  placement = 'bottom-start',
+  offset = 4,
+  flip = true,
+  shift = true,
+  matchAnchorWidth = false,
+  dismissOnOutside = true,
+  dismissOnEscape = true,
+  trapFocus = true,
+  restoreFocus = true,
+}: HoverElementProps) => {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const mergedRef = useMemo(() => mergeRefs(panelRef, ref), [ref]);
+  const [position, setPosition] = useState<{
+    x: number;
+    y: number;
+    placement: Placement;
+    anchorWidth: number;
+  } | null>(null);
+
+  const update = useCallback(() => {
+    const anchorRect = readAnchorRect(anchor);
+    const panelElement = panelRef.current;
+    if (!anchorRect || !panelElement) return;
+    const rect = panelElement.getBoundingClientRect();
+    const next = computePosition({
+      placement, offset, flip, shift, matchAnchorWidth,
+      anchor: anchorRect,
+      panel: {
+        width: rect.width,
+        height: rect.height,
+      },
+      contentSize: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+    });
+    setPosition({
+      ...next,
+      anchorWidth: anchorRect.width,
+    });
+  }, [anchor, placement, offset, flip, shift, matchAnchorWidth]);
+
+  // Run first `update` synchronously before browser paints to get `position`. Until
+  // then, `visibility: 'hidden'`.
+  useLayoutEffect(() => {
+    if (!open) {
+      setPosition(null);
+      return;
+    }
+    const panelElement = panelRef.current;
+    if (!panelElement) return;
+    update();
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(panelElement);
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    }
+  }, [open, update]);
+
+  return (
+    <LayerElement
+      open={ open }
+      style={{
+        ...style,
+        top: position?.y ?? 0,
+        left: position?.x ?? 0,
+        width: matchAnchorWidth && position ? position.anchorWidth : style?.width,
+        visibility: position ? 'visible' : 'hidden',
+      }}
+      onDismiss={ onDismiss }
+      dismissOnOutside={ dismissOnOutside }
+      dismissOnEscape={ dismissOnEscape }
+      trapFocus={ trapFocus }
+      restoreFocus={ restoreFocus }
+      theme={ theme }
+      id={ id }
+      testID={ testID }
+      a11y={ a11y }
+      ref={ mergedRef }
+    >
+      { children }
+    </LayerElement>
+  );
+}
+
+
+
+const HoverContext = createContext<HoverElementContextValue | null>(null);
+export const HoverScopeProvider = HoverContext.Provider;
+
+
+export const useHoverListItem = (opts: HoverListItemHookOptions = {}): HoverListItemHookHandle => {
+  const context = useContext(HoverContext);
+  if (!context) throw new Error('useHoverListItem must be used inside <HoverView>');
+
+  const [index, setIndex] = useState<number>(-1);
+
+  useLayoutEffect(() => {
+    const registerContext = context.register(opts);
+    setIndex(registerContext.index);
+    return registerContext.unregister();
+  });
+
+  const active = index >= 0 && index === context.activeIndex;
+
+  const ref = useCallback((element: HTMLElement | null) => {
+    if (index >= 0) context.setElement(index, element);
+  }, [index, context]);
+
+  return ({
+    index,
+    active,
+    ref,
+    itemProps: {
+      id: context.getId(index),
+      tabIndex: context.navMode === 'focus' && active ? 0 : -1,
+      onFocus: () => {
+        if (index >= 0) context.setActive(index);
+    }},
+  });
+}
+
+
+export const useHoverListNavigation = ({
+  navMode, count, items, activeIndex,
+  getId, onActiveIndexChange, onCommit,
+  defaultActiveIndex = -1,
+}: HoverListNavHookOptions) => {
+
+  const [uncontrolled, setUncontrolled] = useState(defaultActiveIndex);
+  const activeIdx = activeIndex ?? uncontrolled;
+  const setActiveIdx = useCallback((i: number) => {
+    if (activeIndex === undefined) setUncontrolled(i);
+    onActiveIndexChange?.(i);
+  }, [activeIndex, onActiveIndexChange]);
+
+  const buffer = useRef('');
+  const bufferTimer = useRef<number | undefined>(undefined);
+
+  const findNext = useCallback((
+    from: number,
+    order: 1 | -1
+  ) => {
+    if (count === 0) return -1;
+    let i = from;
+    for (let step = 0; step < count; step++) {
+      i = (i +order +count) %count;
+      if (!items.get(i)?.disabled) return i;
+    }
+    return -1;
+  }, [count, items]);
+
+  const onContainerKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (navMode === 'none') return;
+    const key = event.key;
+    if (key === 'ArrowDown' || key === 'ArrowRight') {
+      event.preventDefault();
+      const nextIdx = findNext(activeIdx < 0 ? -1 : activeIdx, 1);
+      if (nextIdx >= 0) setActiveIdx(nextIdx);
+    } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+      event.preventDefault();
+      const prevIdx = findNext(activeIdx < 0 ? count : activeIdx, -1);
+      if (prevIdx >= 0) setActiveIdx(prevIdx);
+    } else if (key === 'Home') {
+      event.preventDefault();
+      const first = findNext(-1, 1);
+      if (first >= 0) setActiveIdx(first);
+    } else if (key === 'End') {
+      event.preventDefault();
+      const last = findNext(count, -1);
+      if (last >= 0) setActiveIdx(last);
+    } else if (key === 'Enter') {
+      if (activeIdx >= 0) {
+        event.preventDefault();
+        onCommit?.(activeIdx);
+      }
+    } else if (key.length === 1) {
+      if (bufferTimer.current) clearTimeout(bufferTimer.current);
+      buffer.current += key.toLowerCase();
+      bufferTimer.current = window.setTimeout(() => {
+        buffer.current = '';
+      }, 500);
+      for (let i = 0; i < count; i++) {
+        const current = items.get(i);
+        if (current?.disabled) continue;
+        if (current?.label?.toLowerCase().startsWith(buffer.current)) {
+          setActiveIdx(i);
+          break;
+        }
+      }
+    }
+  }, [navMode, activeIdx, count, items, findNext, setActiveIdx, onCommit]);
+
+  // focus adapter
+  useEffect(() => {
+    if (navMode !== 'focus' || activeIdx < 0) return;
+    items.get(activeIdx)?.element?.focus();
+  }, [navMode, activeIdx, items]);
+
+  return ({
+    activeIndex: activeIdx,
+    setActive: setActiveIdx,
+    onContainerKeyDown,
+  });
+}

@@ -1,7 +1,7 @@
 import type { Ref, SyntheticEvent, } from 'react';
 import type { ElementProps, LayoutEvent } from '../@core';
-import { useCallback, useEffect, useRef, } from 'react';
-import { resolveA11y, useMediaQuery } from '../@core';
+import { useCallback, useEffect, useMemo, useRef, } from 'react';
+import { mergeRefs, resolveA11y, useMediaQuery } from '../@core';
 import styles from './style.module.css';
 
 
@@ -50,14 +50,8 @@ export const Image = ({
   id, theme, style, a11y, testID, ref,
 }: ImageProps) => {
 
-  const internalRef = useRef<HTMLImageElement | null>(null);
-
-  // merge internal and external ref
-  const setRef = useCallback((node: HTMLImageElement | null) => {
-    internalRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const elementRef = useMemo(() => mergeRefs(imageRef, ref), [ref]);
 
   const handleLoad = useCallback((event: ImageEvent) => {
     onLoad?.(event);
@@ -90,9 +84,9 @@ export const Image = ({
 
   // no idea wtf this does
   useEffect(() => {
-    if (!onLayout || !internalRef.current) return;
-    const element = internalRef.current;
-    const observer = new ResizeObserver(entries => {
+    if (!onLayout || !imageRef.current) return;
+    const element = imageRef.current;
+    const resizeObserver = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect;
       const target = parseInt(element.id, 10);
       onLayoutRef.current?.({
@@ -100,9 +94,9 @@ export const Image = ({
         target: Number.isNaN(target) ? null : target,
       });
     });
-    observer.observe(element);
+    resizeObserver.observe(element);
     return () => {
-      observer.disconnect();
+      resizeObserver.disconnect();
     }
   }, [onLayout]);
 
@@ -122,7 +116,7 @@ export const Image = ({
       onError={ handleError }
       id={ id }
       data-testid={ testID }
-      ref={ setRef }
+      ref={ elementRef }
       { ...accessibility }
     />
   );
