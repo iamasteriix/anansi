@@ -6,7 +6,7 @@ export type {
   ElementChildren, ElementProps, ViewElementProps, PressElementProps, LayoutEvent,
   PressEvent, TargetEvent, PressElementState, GroupVariant, GroupItemContext,
   TextInputElementProps, LayerElementProps, ViewportCoords, ContentSize,
-  HoverElementNavMode, HoverElementProps,
+  HoverElementNavMode, HoverElementProps, HoverListItem, HoverListItemHookOptions,
   A11yProps,
 } from './types';
 

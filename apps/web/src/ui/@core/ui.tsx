@@ -10,7 +10,7 @@ import type {
   LayerContextValue, LayerElementProps, HoverElementProps, Placement,
   ViewportCoords, ContentSize, Side, ComputePositionOptions, ComputePositionResult,
   Align, Anchor, Rect, HoverListItemHookOptions, HoverListItemHookHandle,
-  HoverElementContextValue, HoverListNavHookOptions,
+  HoverElementContextValue, HoverListNavHookOptions, HoverScopeProviderProps,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
@@ -1126,9 +1126,33 @@ export const HoverElement = ({
 }
 
 
-
 const HoverContext = createContext<HoverElementContextValue | null>(null);
-export const HoverScopeProvider = HoverContext.Provider;
+
+
+export const HoverScopeProvider = ({
+  children,
+  navMode, activeIndex, tabIndex,
+  setActiveIndex, register, setElement, getId, onKeyPress,
+}: HoverScopeProviderProps) => {
+
+  const value = useMemo<HoverElementContextValue>(() => ({
+    navMode, activeIndex, setActiveIndex, register, setElement, getId,
+  }), [navMode, activeIndex, setActiveIndex, register, setElement, getId]);
+
+  const activeDescendantId = useMemo(() => getId(activeIndex), [getId, activeIndex]);
+
+  return (
+    <HoverContext.Provider value={ value }>
+      <div
+        tabIndex={ tabIndex }
+        onKeyDown={ onKeyPress }
+        aria-activedescendant={ activeDescendantId }
+      >
+        { children }
+      </div>
+    </HoverContext.Provider>
+  );
+};
 
 
 export const useHoverListItem = (opts: HoverListItemHookOptions = {}): HoverListItemHookHandle => {
@@ -1157,62 +1181,75 @@ export const useHoverListItem = (opts: HoverListItemHookOptions = {}): HoverList
       id: context.getId(index),
       tabIndex: context.navMode === 'focus' && active ? 0 : -1,
       onFocus: () => {
-        if (index >= 0) context.setActive(index);
+        if (index >= 0) context.setActiveIndex(index);
     }},
   });
 }
 
 
 export const useHoverListNavigation = ({
-  navMode, count, items, activeIndex,
+  navMode, items, activeIndex,
   getId, onActiveIndexChange, onCommit,
   defaultActiveIndex = -1,
 }: HoverListNavHookOptions) => {
 
   const [uncontrolled, setUncontrolled] = useState(defaultActiveIndex);
   const activeIdx = activeIndex ?? uncontrolled;
-  const setActiveIdx = useCallback((i: number) => {
+  const setActiveIdx = (i: number) => {
     if (activeIndex === undefined) setUncontrolled(i);
     onActiveIndexChange?.(i);
-  }, [activeIndex, onActiveIndexChange]);
+  }
+
+  const getKeys = (): number[] => [...items.keys()]
+    .sort((a, b) => a - b)
+    .filter(i => !items.get(i)?.disabled);
+
+  const findNext = (
+    from: number,
+    order: 1 | -1
+  ) => {
+    const keys = getKeys();
+    if (!keys.length) return -1;
+    const currentIdx = keys.indexOf(from);
+    if (currentIdx < 0) return order > 0 ? keys[0] : keys[keys.length -1];
+    const nextIdx = (currentIdx +order +keys.length) %keys.length;
+    return keys[nextIdx];
+  }
+
+  const findFirst = (): number => {
+    const keys = getKeys();
+    return keys.length ? keys[0] : -1;
+  }
+
+  const findLast = (): number => {
+    const keys = getKeys();
+    return keys.length ? keys[keys.length -1] : -1;
+  }
 
   const buffer = useRef('');
   const bufferTimer = useRef<number | undefined>(undefined);
 
-  const findNext = useCallback((
-    from: number,
-    order: 1 | -1
-  ) => {
-    if (count === 0) return -1;
-    let i = from;
-    for (let step = 0; step < count; step++) {
-      i = (i +order +count) %count;
-      if (!items.get(i)?.disabled) return i;
-    }
-    return -1;
-  }, [count, items]);
-
-  const onContainerKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
     if (navMode === 'none') return;
     const key = event.key;
     if (key === 'ArrowDown' || key === 'ArrowRight') {
       event.preventDefault();
-      const nextIdx = findNext(activeIdx < 0 ? -1 : activeIdx, 1);
+      const nextIdx = findNext(activeIdx, 1);
       if (nextIdx >= 0) setActiveIdx(nextIdx);
     } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
       event.preventDefault();
-      const prevIdx = findNext(activeIdx < 0 ? count : activeIdx, -1);
+      const prevIdx = findNext(activeIdx, -1);
       if (prevIdx >= 0) setActiveIdx(prevIdx);
     } else if (key === 'Home') {
       event.preventDefault();
-      const first = findNext(-1, 1);
+      const first = findFirst();
       if (first >= 0) setActiveIdx(first);
     } else if (key === 'End') {
       event.preventDefault();
-      const last = findNext(count, -1);
+      const last = findLast();
       if (last >= 0) setActiveIdx(last);
     } else if (key === 'Enter') {
-      if (activeIdx >= 0) {
+      if (activeIdx >= 0 && items.has(activeIdx)) {
         event.preventDefault();
         onCommit?.(activeIdx);
       }
@@ -1222,16 +1259,17 @@ export const useHoverListNavigation = ({
       bufferTimer.current = window.setTimeout(() => {
         buffer.current = '';
       }, 500);
-      for (let i = 0; i < count; i++) {
-        const current = items.get(i);
+      const keys = getKeys();
+      for (const key of keys) {
+        const current = items.get(key);
         if (current?.disabled) continue;
         if (current?.label?.toLowerCase().startsWith(buffer.current)) {
-          setActiveIdx(i);
+          setActiveIdx(key);
           break;
         }
       }
     }
-  }, [navMode, activeIdx, count, items, findNext, setActiveIdx, onCommit]);
+  }, [navMode, activeIdx, items, findNext, setActiveIdx, onCommit]);
 
   // focus adapter
   useEffect(() => {
@@ -1241,7 +1279,8 @@ export const useHoverListNavigation = ({
 
   return ({
     activeIndex: activeIdx,
-    setActive: setActiveIdx,
-    onContainerKeyDown,
+    setActiveIndex: setActiveIdx,
+    onKeyPress: handleKeyDown,
+    getId,
   });
 }

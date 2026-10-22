@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactElement, ReactNode, Ref, } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactElement, ReactNode, Ref, } from 'react';
 import { tokens } from './tokens';
 
 
@@ -423,7 +423,7 @@ export type HoverElementNavMode = 'none' | 'focus' | 'virtual';
 export type HoverElementContextValue = {
   navMode: HoverElementNavMode;
   activeIndex: number;
-  setActive: (i: number) => void;
+  setActiveIndex: (i: number) => void;
   register: (opts: HoverListItemHookOptions) => {
     index: number;
     unregister: () => void;
@@ -435,7 +435,13 @@ export type HoverElementContextValue = {
   getId: (index: number) => string;
 };
 
-type HoverListItem = {
+export type HoverScopeProviderProps = HoverElementContextValue & {
+  children: ElementChildren;
+  tabIndex: 0 | -1;
+  onKeyPress?: (event: KeyboardEvent<HTMLElement>) => void;
+};
+
+export type HoverListItem = {
   index: number;
   element: HTMLElement | null;
   disabled: boolean;
@@ -444,7 +450,6 @@ type HoverListItem = {
 
 export type HoverListNavHookOptions = {
   navMode: HoverElementNavMode;
-  count: number;
   getId: (i: number) => string;
   items: Map<number, HoverListItem>;
   activeIndex?: number;

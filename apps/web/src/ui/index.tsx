@@ -1,3 +1,8 @@
+export {
+  ThemeSheet,
+  useTheme, useMediaQuery,
+} from './@core';
+
 export { View, } from './view';
 export { AppView } from './app-view';
 export { Button, } from './button';
@@ -5,10 +10,9 @@ export { TextField } from './text-field';
 export { Text } from './text';
 export { Badge } from './badge';
 export { Toolbar } from './toolbar';
-// export { ContextMenu } from './context-menu';
 export { PageView } from './page-view';
 export { Image } from './image';
-export { ThemeSheet, useTheme, useMediaQuery, } from './@core';
+export { HoverView } from './hover-view';
 
 
 import type { ButtonVariant } from './button';
