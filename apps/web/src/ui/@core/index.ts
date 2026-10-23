@@ -7,6 +7,7 @@ export type {
   PressEvent, TargetEvent, PressElementState, GroupVariant, GroupItemContext,
   TextInputElementProps, LayerElementProps, ViewportCoords, ContentSize,
   HoverElementNavMode, HoverElementProps, HoverListItem, HoverListItemHookOptions,
+  ScrollViewElementProps,
   A11yProps,
 } from './types';
 
@@ -17,7 +18,7 @@ export { resolveThemeSheet, ThemeSheet, useMediaQuery, useTheme, } from './theme
 export {
   ThemeProvider, SlotScopeProvider, GroupItemProvider, LayerProvider,
   HoverScopeProvider,
-  ViewElement, PressElement, TextInputElement, HoverElement,
+  ViewElement, PressElement, TextInputElement, HoverElement, ScrollViewElement,
   useSlots, createSlot, slotProp, createGroup, useGroupItem, useHoverListItem,
   useHoverListNavigation, useLayer,
   resolveGlassStyle, mergeRefs, flattenChildren,

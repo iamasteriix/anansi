@@ -201,3 +201,27 @@
   );
   pointer-events: auto;
 }
+/* =================================================================================== */
+
+
+/* SCROLL VIEW ======================================================================= */
+.scroll-view-element {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.scroll-view-element--horizontal {
+  flex-direction: row;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.scroll-view-element--hide-indicator { scrollbar-width: none; }
+.scroll-view-element--hide-indicator::-webkit-scrollbar { display: none; }
+
+.scroll-view-element--disabled { overflow: hidden; }
+
+/* content is sized by its children so scrollWidth/scrollHeight stay truthful */
+.scroll-view-element__content { flex: none; }
+.scroll-view-element__content--horizontal { flex-direction: row; }
+/* =================================================================================== */

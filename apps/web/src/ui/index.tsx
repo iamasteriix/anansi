@@ -27,6 +27,7 @@ declare module './@core' {
       button: ButtonVariant;
       toolbar: ToolbarVariant;
       textfield: TextFieldVariant;
+      scrollView: ViewVariant;
     },
 }};
 

@@ -11,10 +11,12 @@ import type {
   ViewportCoords, ContentSize, Side, ComputePositionOptions, ComputePositionResult,
   Align, Anchor, Rect, HoverListItemHookOptions, HoverListItemHookHandle,
   HoverElementContextValue, HoverListNavHookOptions, HoverScopeProviderProps,
+  ScrollViewElementProps,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
-  useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  useCallback, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo,
+  useRef, useState,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { ThemeContext, toCSSVariables, useMediaQuery } from './theme';
@@ -112,11 +114,113 @@ export const mergeRefs = <T extends Element>(...refs: Array<Ref<T> | undefined |
 // ======================================================================================
 
 
+// THEME ================================================================================
+// src/theme/provider.tsx
+const default_themes: ThemesType = { moonsong: tokens, };
+
+
+/**
+ * Provides the resolved theme to all children via context and CSS variables
+ */
+export const ThemeProvider = ({
+  themes = default_themes,
+  persister = storageAdapter,
+  children,
+}: ThemeProviderProps) => {
+
+  const fallback: keyof ThemesType = Object.keys(themes)[0];
+  const [themeName, setThemeName] = useState<keyof ThemesType>(fallback);
+  
+  // persist all provided themes
+  useEffect(
+    () => {
+      const persist = persister('theme');
+      Object.entries(themes)
+        .forEach(([name, tokens]) => {
+          persist.set(name, tokens);
+        });
+    },
+    [themes, persister]
+  );
+
+  useLayoutEffect(
+    () => {
+      let canceled = false;
+      Promise.resolve(
+        persister('activeTheme').get<string>('name')
+      ).then(activeThemeName => {
+          if (!canceled && activeThemeName && activeThemeName in themes) setThemeName(activeThemeName);
+        });
+      return () => {
+        canceled = true;
+      };
+    },
+    [themes, persister]
+  );
+
+  const setTheme = useCallback(
+    (name: keyof ThemesType) => {
+      if (!(name in themes)) return;
+      setThemeName(name);
+      persister('activeTheme').set('name', name);
+    },
+    [themes, persister]
+  );
+
+  const resolvedTheme = themes[themeName];
+  const cssVars: CSSProperties = useMemo(
+    () => toCSSVariables(resolvedTheme),
+    [resolvedTheme]
+  );
+
+  const themeProviderValues = useMemo(
+    () => ({
+      tokens: resolvedTheme,
+      name: themeName,
+      setTheme,
+    }),
+    [resolvedTheme, themeName, setTheme]
+  );
+
+  return (
+    <ThemeContext.Provider value={ themeProviderValues }>
+      <div style={ cssVars }>
+        { children }
+      </div>
+    </ThemeContext.Provider>
+  );
+}
+// ======================================================================================
+
+
 // VIEW =================================================================================
 // src/ui/view-element.tsx
 export const ViewElement = ({
-  children, id, theme, a11y, style, testID, ref, classes,
+  children, id, theme, a11y, style, testID, ref,
+  onLayout,
+  classes,
 }: ViewElementProps & { classes?: string; }) => {
+
+  const layoutRef = useRef<HTMLDivElement | null>(null);
+  const elementRef = useMemo(() => mergeRefs(layoutRef, ref), [ref]);
+
+  useEffect(() => {
+    const element = layoutRef.current;
+    if (!element || !onLayout) return;
+    const resizeObserver = new ResizeObserver(entries => entries.forEach(entry => {
+      const { width, height, x, y, } = entry.contentRect;
+      onLayout({
+        nativeEvent: {
+          layout: { width, height, x, y, },
+          target: parseTargetId(entry.target.id),
+        },
+      });
+    }));
+    resizeObserver.observe(element);
+    return () => {
+      resizeObserver.disconnect();
+    }
+  }, [onLayout]);
 
   const { cssProperties, } = useMediaQuery(theme, style);                         // resolve styling at media query level
   const className = [styles['view-element'], classes].filter(Boolean).join(' ');  // merge css classes
@@ -128,7 +232,7 @@ export const ViewElement = ({
       style={ cssProperties }
       id={ id }
       data-testid={ testID }
-      ref={ ref }
+      ref={ elementRef }
       { ...accessibility }
     >
       { children }
@@ -430,86 +534,118 @@ export const TextInputElement = ({
 // ======================================================================================
 
 
-// THEME ================================================================================
-// src/theme/provider.tsx
-const default_themes: ThemesType = { moonsong: tokens, };
+// SCROLL VIEW ==========================================================================
+export const ScrollViewElement = ({
+  children, id, theme, style, a11y, testID, ref,
+  onContentSizeChange, onLayout, onScroll,
+  horizontal = false,
+  scrollEnabled = true,
+  showsScrollIndicator = true,
+  classes,
+}: ScrollViewElementProps & { classes?: string }) => {
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
-/**
- * Provides the resolved theme to all children via context and CSS variables
- */
-export const ThemeProvider = ({
-  themes = default_themes,
-  persister = storageAdapter,
-  children,
-}: ThemeProviderProps) => {
-
-  const fallback: keyof ThemesType = Object.keys(themes)[0];
-  const [themeName, setThemeName] = useState<keyof ThemesType>(fallback);
-  
-  // persist all provided themes
-  useEffect(
-    () => {
-      const persist = persister('theme');
-      Object.entries(themes)
-        .forEach(([name, tokens]) => {
-          persist.set(name, tokens);
-        });
+  // expose imperative methods
+  // pretentious way of saying we're connecting the methods from outside to the ones here
+  // bruh, i'm running on caffeine and 4h of sleep
+  // but trust me, i get what this hook does now
+  useImperativeHandle(ref, () => ({
+    scrollTo: ({ x, y, animated = true, }) => {
+      scrollRef.current?.scrollTo({
+        left: x,
+        top: y,
+        behavior: animated ? 'smooth' : 'instant',
+      });
     },
-    [themes, persister]
-  );
-
-  useLayoutEffect(
-    () => {
-      let canceled = false;
-      Promise.resolve(
-        persister('activeTheme').get<string>('name')
-      ).then(activeThemeName => {
-          if (!canceled && activeThemeName && activeThemeName in themes) setThemeName(activeThemeName);
-        });
-      return () => {
-        canceled = true;
-      };
+    scrollToEnd: ({ animated = true } = {}) => {
+      const element = scrollRef.current;
+      if (!element) return;
+      element.scrollTo({
+        left: horizontal ? element.scrollWidth : undefined,
+        top: horizontal ? undefined : element.scrollHeight,
+        behavior: animated ? 'smooth' : 'instant',
+      });
     },
-    [themes, persister]
-  );
+    getScrollableNode: () => scrollRef.current,
+  }), [horizontal]);
 
-  const setTheme = useCallback(
-    (name: keyof ThemesType) => {
-      if (!(name in themes)) return;
-      setThemeName(name);
-      persister('activeTheme').set('name', name);
-    },
-    [themes, persister]
-  );
+  // listen for scroll events
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element || !onScroll) return;
+    const handler = () => onScroll({
+      nativeEvent: {
+        contentOffset: {
+          x: element.scrollLeft,
+          y: element.scrollTop,
+        },
+        contentSize: {
+          width: element.scrollWidth,
+          height: element.scrollHeight,
+        },
+        layoutMeasurement: {
+          width: element.clientWidth,
+          height: element.clientHeight,
+        },
+      },
+    });
+    element.addEventListener('scroll', handler, { passive: true, });
+    return () => {
+      element.removeEventListener('scroll', handler);
+    }
+  }, [onScroll]);
 
-  const resolvedTheme = themes[themeName];
-  const cssVars: CSSProperties = useMemo(
-    () => toCSSVariables(resolvedTheme),
-    [resolvedTheme]
-  );
+  useEffect(() => {
+    const element = contentRef.current;
+    if (!element || !onContentSizeChange) return;
+    const resizeObserver = new ResizeObserver(entries => entries.forEach(({ contentRect }) => {
+      onContentSizeChange(contentRect.width, contentRect.height);
+    }));
+    resizeObserver.observe(element);
+    return () => {
+      resizeObserver.disconnect();
+    }
+  }, [onContentSizeChange]);
 
-  const themeProviderValues = useMemo(
-    () => ({
-      tokens: resolvedTheme,
-      name: themeName,
-      setTheme,
-    }),
-    [resolvedTheme, themeName, setTheme]
-  );
+  const containerClasses = [
+    classes,
+    styles['scroll-view-element'],
+    horizontal && styles['scroll-view-element--horizontal'],
+    !scrollEnabled && styles['scroll-view-element--disabled'],
+    !showsScrollIndicator && styles['scroll-view-element--hide-indicator'],
+  ].filter(Boolean).join(' ');
+
+  const contentClasses = [
+    styles['scroll-view-element__content'],
+    horizontal && styles['scroll-view-element__content--horizontal'],
+  ].filter(Boolean).join(' ');
 
   return (
-    <ThemeContext.Provider value={ themeProviderValues }>
-      <div style={ cssVars }>
+    <ViewElement
+      classes={ containerClasses }
+      theme={ theme }
+      style={ style }
+      id={ id }
+      a11y={ a11y }
+      testID={ testID }
+      ref={ scrollRef }
+      onLayout={ onLayout }
+    >
+      <ViewElement
+        classes={ contentClasses }
+        ref={ contentRef }
+      >
         { children }
-      </div>
-    </ThemeContext.Provider>
+      </ViewElement>
+    </ViewElement>
   );
 }
 // ======================================================================================
 
 
-// PARTITIONS ===========================================================================
+// PARTITIONS: Slot =====================================================================
 // src/ui/slot.tsx
 const SlotScope = createContext<string | null>(null);
 export const SlotScopeProvider = SlotScope.Provider;
@@ -584,8 +720,10 @@ export const createSlot = <
     },
   });
 };
+// ======================================================================================
 
 
+// PARTITIONS: Group ====================================================================
 export const slotProp = <T,>(
   element: ReactElement,
   key: string
@@ -1284,3 +1422,4 @@ export const useHoverListNavigation = ({
     getId,
   });
 }
+// ======================================================================================

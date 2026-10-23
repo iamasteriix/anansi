@@ -1,4 +1,6 @@
-import type { CSSProperties, KeyboardEvent, ReactElement, ReactNode, Ref, } from 'react';
+import type {
+  CSSProperties, KeyboardEvent, ReactElement, ReactNode, Ref,
+} from 'react';
 import { tokens } from './tokens';
 
 
@@ -227,11 +229,18 @@ export type PressEvent = {
   timestamp: number,
   touches: PressEvent[]
 };
+
+// incomplete
+export type ScrollViewEventPayload = {
+  contentOffset: ViewportCoords;
+  contentSize: ContentSize;
+  layoutMeasurement: ContentSize;
+};
 // ======================================================================================
 
 
-// PSEUDO-OFFICIAL ======================================================================
-// These are on the official react native website, just don't have dedicated pages
+// OFFICIAL: Kind of ====================================================================
+// On the official react native docs, just don't have dedicated pages
 export type TextEventPayload = TargetEvent & {
   text: string;
   eventCount: number; // sequence counter for native-to-JS bridge sync (not available on web, 0 is fallback)
@@ -243,10 +252,10 @@ export type SelectionEventPayload = { selection: { start: number; end: number; }
 // ======================================================================================
 
 
-// UI ===================================================================================
+// UI: Base =============================================================================
 export type NativeEvent<T> = { nativeEvent: T; };
 
-export type ElementChildren = boolean | ReactElement | ElementChildren[];
+export type ElementChildren = boolean | null | ReactElement | ElementChildren[];
 
 export type ElementProps = {
   children?: ElementChildren;
@@ -255,8 +264,12 @@ export type ElementProps = {
   theme?: TSProperties;
   a11y?: A11yProps;
   testID?: string;
+  onLayout?: (event: NativeEvent<LayoutEvent>) => void;
 };
+// ======================================================================================
 
+
+// UI: Primitive ========================================================================
 export type ViewElementProps = ElementProps & {
   ref?: Ref<HTMLDivElement>;
 };
@@ -280,6 +293,36 @@ export type PressElementProps = Omit<ElementProps, 'children'> & {
   ref?: Ref<HTMLDivElement>;
 };
 
+export type TextInputElementProps = Omit<ElementProps, 'children'> & {
+  autoComplete?: string;
+  autoFocus?: boolean;
+  defaultValue?: string;
+  editable?: boolean;
+  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
+  maxLength?: number;
+  placeholder?: string;
+  readOnly?: boolean;
+  submitBehavior?: 'submit' | 'newline';
+  rows?: number;
+  value?: string;
+  onBlur?: (event: NativeEvent<TargetEvent>) => void;
+  onChange?: (event: NativeEvent<TextEventPayload>) => void;
+  onChangeText?: (text: string) => void;
+  onContentSizeChange?: (event: NativeEvent<ContentSizeEventPayload>) => void;
+  onFocus?: (event: NativeEvent<TargetEvent>) => void;
+  onKeyPress?: (event: NativeEvent<KeyEventPayload>) => void;
+  onPressIn?: (event: NativeEvent<PressEvent>) => void;
+  onPressOut?: (event: NativeEvent<PressEvent>) => void;
+  onScroll?: (event: NativeEvent<ScrollEventPayload>) => void;
+  onSelectionChange?: (event: NativeEvent<SelectionEventPayload>) => void;
+  onSubmitEditing?: (event: NativeEvent<TextEventPayload>) => void;
+  onEndEditing?: (event: NativeEvent<TextEventPayload>) => void;
+  ref?: Ref<HTMLTextAreaElement>;
+};
+// ======================================================================================
+
+
+// UI: Partitions =======================================================================
 export type SlotMarker = {
   marker: {
     slotName: string;
@@ -321,35 +364,10 @@ export type GroupItemDerived = {
 export type GroupContainerDerived = GroupItemDerived & {
   a11y?: A11yProps; // so screen readers know the entire set is disabled
 };
+// ======================================================================================
 
-export type TextInputElementProps = Omit<ElementProps, 'children'> & {
-  autoComplete?: string;
-  autoFocus?: boolean;
-  defaultValue?: string;
-  editable?: boolean;
-  inputMode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
-  maxLength?: number;
-  placeholder?: string;
-  readOnly?: boolean;
-  submitBehavior?: 'submit' | 'newline';
-  rows?: number;
-  value?: string;
-  onBlur?: (event: NativeEvent<TargetEvent>) => void;
-  onChange?: (event: NativeEvent<TextEventPayload>) => void;
-  onChangeText?: (text: string) => void;
-  onContentSizeChange?: (event: NativeEvent<ContentSizeEventPayload>) => void;
-  onFocus?: (event: NativeEvent<TargetEvent>) => void;
-  onKeyPress?: (event: NativeEvent<KeyEventPayload>) => void;
-  onPressIn?: (event: NativeEvent<PressEvent>) => void;
-  onPressOut?: (event: NativeEvent<PressEvent>) => void;
-  onScroll?: (event: NativeEvent<ScrollEventPayload>) => void;
-  onSelectionChange?: (event: NativeEvent<SelectionEventPayload>) => void;
-  onSubmitEditing?: (event: NativeEvent<TextEventPayload>) => void;
-  onEndEditing?: (event: NativeEvent<TextEventPayload>) => void;
-  onLayout?: (event: NativeEvent<LayoutEvent>) => void;
-  ref?: Ref<HTMLTextAreaElement>;
-};
 
+// UI: Layers ===========================================================================
 export type LayerContextValue = {
   container: HTMLElement | null;
   nextZ: () => number;
@@ -457,3 +475,31 @@ export type HoverListNavHookOptions = {
   onActiveIndexChange?: (i: number) => void;
   onCommit?: (i: number) => void;
 };
+// ======================================================================================
+
+
+// UI: Scroll view ======================================================================
+export type ScrollToOptions = {
+  x?: number;
+  y?: number;
+  animated?: boolean;
+};
+
+export type ScrollViewHandle = {
+  scrollTo: (options: ScrollToOptions) => void;
+  scrollToEnd: (options?: { animated?: boolean }) => void;
+  getScrollableNode: () => HTMLDivElement | null;
+};
+
+export type ScrollViewElementProps = ElementProps & {
+  horizontal?: boolean;
+  scrollEnabled?: boolean;
+  showsScrollIndicator?: boolean;
+  onScroll?: (event: NativeEvent<ScrollViewEventPayload>) => void;
+  onContentSizeChange?: (
+    width: number,
+    height: number
+  ) => void;
+  ref?: Ref<ScrollViewHandle>;
+};
+// ======================================================================================

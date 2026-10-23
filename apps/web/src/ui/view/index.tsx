@@ -20,7 +20,7 @@ export type ViewProps = ElementProps & {
 
 
 // Utils ————————————————————————————————————————————————————————————————————————————————
-const resolveVariants = (variant: ViewVariant | undefined): string => {
+export const resolveViewVariants = (variant: ViewVariant | undefined): string => {
   const shadow = variant?.shadow === 'none' ? 'none' : (variant?.elevation || 'base');
   return [
     styles.view,
@@ -39,7 +39,7 @@ export const View = ({
 }: ViewProps) => {
   return (
     <ViewElement
-      classes={ resolveVariants(variant) }
+      classes={ resolveViewVariants(variant) }
       theme={ theme }
       style={ style }
       id={ id }
