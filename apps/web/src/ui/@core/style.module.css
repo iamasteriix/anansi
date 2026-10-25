@@ -225,3 +225,25 @@
 .scroll-view-element__content { flex: none; }
 .scroll-view-element__content--horizontal { flex-direction: row; }
 /* =================================================================================== */
+
+
+/* VIRTUALIZED LIST ================================================================== */
+.virtualized-list__content {
+  position: relative;
+  inline-size: 100%;
+}
+
+.virtualized-list__item {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 100%;
+}
+
+.virtualized-list__header,
+.virtualized-list__footer,
+.virtualized-list__empty {
+  flex: none;
+  inline-size: 100%;
+}
+/* =================================================================================== */

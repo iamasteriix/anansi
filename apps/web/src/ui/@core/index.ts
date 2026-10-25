@@ -7,7 +7,8 @@ export type {
   PressEvent, TargetEvent, PressElementState, GroupVariant, GroupItemContext,
   TextInputElementProps, LayerElementProps, ViewportCoords, ContentSize,
   HoverElementNavMode, HoverElementProps, HoverListItem, HoverListItemHookOptions,
-  ScrollViewElementProps,
+  ScrollViewElementProps, VirtualizedListProps, VirtualizedListHandle, ViewToken,
+  ListRenderItemInfo,
   A11yProps,
 } from './types';
 
@@ -19,6 +20,7 @@ export {
   ThemeProvider, SlotScopeProvider, GroupItemProvider, LayerProvider,
   HoverScopeProvider,
   ViewElement, PressElement, TextInputElement, HoverElement, ScrollViewElement,
+  VirtualizedList,
   useSlots, createSlot, slotProp, createGroup, useGroupItem, useHoverListItem,
   useHoverListNavigation, useLayer,
   resolveGlassStyle, mergeRefs, flattenChildren,

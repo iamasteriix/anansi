@@ -1,4 +1,5 @@
 import type {
+  ComponentType,
   CSSProperties, KeyboardEvent, ReactElement, ReactNode, Ref,
 } from 'react';
 import { tokens } from './tokens';
@@ -255,7 +256,7 @@ export type SelectionEventPayload = { selection: { start: number; end: number; }
 // UI: Base =============================================================================
 export type NativeEvent<T> = { nativeEvent: T; };
 
-export type ElementChildren = boolean | null | ReactElement | ElementChildren[];
+export type ElementChildren = boolean | null | undefined | ReactElement | ElementChildren[];
 
 export type ElementProps = {
   children?: ElementChildren;
@@ -479,7 +480,7 @@ export type HoverListNavHookOptions = {
 
 
 // UI: Scroll view ======================================================================
-export type ScrollToOptions = {
+type ScrollToOptions = {
   x?: number;
   y?: number;
   animated?: boolean;
@@ -501,5 +502,72 @@ export type ScrollViewElementProps = ElementProps & {
     height: number
   ) => void;
   ref?: Ref<ScrollViewHandle>;
+};
+// ======================================================================================
+
+
+// UI: Virtualized list =================================================================
+export type ViewToken<T = unknown> = {
+  item: T;
+  key: string;
+  index: number | null;
+  isViewable: boolean;
+  section?: unknown;
+};
+
+export type ViewabilityConfig = {
+  minimumViewTime?: number;
+  viewAreaCoveragePercentThreshold?: number;
+  itemVisiblePercentThreshold?: number;
+  waitForInteraction?: boolean;
+};
+
+export type ListRenderItemInfo<T> = {
+  item: T;
+  index: number;
+};
+
+type ItemLayout = {
+  length: number;
+  offset: number;
+  index: number;
+};
+
+export type VirtualizedListHandle = ScrollViewHandle & {
+  scrollToIndex: (option: {
+    index: number;
+    animated?: boolean;
+    viewPosition?: number;
+  }) => void;
+  scrollToOffset: (options: {
+    offset: number;
+    animated?: boolean;
+  }) => void;
+};
+
+export type ListSlot = ComponentType<any> | ReactElement | null;
+
+export type VirtualizedListProps<T = unknown, D = unknown> = Omit<ScrollViewElementProps, 'ref' | 'children'> & {
+  data?: D;
+  getItem: (data: D, index: number) => T;
+  getItemCount: (data: D) => number;
+  renderItem: (info: ListRenderItemInfo<T>) => ReactElement | null;
+  keyExtractor?: (item: T, index: number) => string;
+  getItemLayout?: (data: D | undefined, index: number) => ItemLayout;
+  extraData?: unknown;
+  initialScrollIndex?: number;
+  windowSize?: number;
+  onEndReached?: (info: { distanceFromEnd: number }) => void;
+  onEndReachedThreshold?: number;
+  onViewableItemsChanged?: (info: {
+    viewableItems: ViewToken<T>[],
+    changed: ViewToken<T>[]
+  }) => void;
+  viewabilityConfig?: ViewabilityConfig;
+  ListHeaderComponent?: ListSlot;
+  ListFooterComponent?: ListSlot;
+  ListEmptyComponent?: ListSlot;
+  ItemSeparatorComponent?: ComponentType<any> | null;
+  ref?: Ref<VirtualizedListHandle>;
 };
 // ======================================================================================

@@ -1,6 +1,7 @@
 export {
   ThemeSheet,
   useTheme, useMediaQuery,
+  VirtualizedList,
 } from './@core';
 
 export { View, } from './view';
@@ -13,6 +14,7 @@ export { Toolbar } from './toolbar';
 export { PageView } from './page-view';
 export { Image } from './image';
 export { HoverView } from './hover-view';
+export { FlatList } from './flatlist';
 
 
 import type { ButtonVariant } from './button';

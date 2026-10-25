@@ -2,6 +2,7 @@ import type {
   ChangeEvent, ComponentProps, ComponentType, Context, CSSProperties, FocusEvent,
   KeyboardEvent, PointerEvent, ReactElement, ReactNode, Ref, UIEvent,
 } from 'react';
+import type { Virtualizer } from '@tanstack/react-virtual';
 import type {
   GroupContainerDerived, GroupItemContext, GroupItemDerived, GroupItemPosition,
   GroupItemProviderProps, GroupMemberMarker, GroupProps, GroupVariant, PressElementProps,
@@ -11,7 +12,7 @@ import type {
   ViewportCoords, ContentSize, Side, ComputePositionOptions, ComputePositionResult,
   Align, Anchor, Rect, HoverListItemHookOptions, HoverListItemHookHandle,
   HoverElementContextValue, HoverListNavHookOptions, HoverScopeProviderProps,
-  ScrollViewElementProps,
+  ScrollViewElementProps, ScrollViewHandle, VirtualizedListProps, ViewToken, ListSlot,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
@@ -19,6 +20,7 @@ import {
   useRef, useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { ThemeContext, toCSSVariables, useMediaQuery } from './theme';
 import { resolveA11y } from './a11y';
 import { storageAdapter } from './storage';
@@ -548,9 +550,7 @@ export const ScrollViewElement = ({
   const contentRef = useRef<HTMLDivElement | null>(null);
 
   // expose imperative methods
-  // pretentious way of saying we're connecting the methods from outside to the ones here
-  // bruh, i'm running on caffeine and 4h of sleep
-  // but trust me, i get what this hook does now
+  // pretentious way of saying we're connecting the methods from outside with the ones here
   useImperativeHandle(ref, () => ({
     scrollTo: ({ x, y, animated = true, }) => {
       scrollRef.current?.scrollTo({
@@ -643,6 +643,247 @@ export const ScrollViewElement = ({
   );
 }
 // ======================================================================================
+
+
+// VIRTUALIZED LIST ====================================================================
+const default_item_size = 45;
+
+
+export const VirtualizedList = <T, D>({
+  id, theme, style, a11y, testID, ref,
+  onLayout,
+  data, extraData, initialScrollIndex, windowSize, viewabilityConfig,
+  onEndReachedThreshold, ListEmptyComponent, ListFooterComponent, ListHeaderComponent,
+  ItemSeparatorComponent,
+  getItem, getItemCount, renderItem, keyExtractor, getItemLayout, onEndReached,
+  onViewableItemsChanged,
+  horizontal, scrollEnabled, showsScrollIndicator,
+  onContentSizeChange, onScroll,
+}: VirtualizedListProps<T, D>) => {
+
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const footerRef = useRef<HTMLDivElement | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const element = headerRef.current;
+    if (!element) {
+      setHeaderHeight(0);
+      return;
+    }
+    const measure = () => setHeaderHeight(element.offsetHeight);
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(element);
+    return () => {
+      resizeObserver.disconnect();
+    }
+  }, [ListHeaderComponent]);
+
+  useLayoutEffect(() => {
+    const element = footerRef.current;
+    if (!element) {
+      setFooterHeight(0);
+      return;
+    }
+    const measure = () => setFooterHeight(element.offsetHeight);
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(element);
+    return () => {
+      resizeObserver.disconnect();
+    }
+  }, [ListFooterComponent]);
+  
+  const scrollRef = useRef<ScrollViewHandle>(null);
+  const count = getItemCount(data as D);
+  const endReachedRef = useRef(false);
+  const viewableRef = useRef<Map<string, ViewToken<T>>>(new Map());
+  
+  // latest props in a ref so `onChnage` stays referentially stable (???)
+  const propsRef = useRef({
+    data, onEndReached, onEndReachedThreshold, onViewableItemsChanged, viewabilityConfig,
+    getItem, keyExtractor, count, horizontal,
+  });
+  propsRef.current = {
+    data, onEndReached, onEndReachedThreshold, onViewableItemsChanged, viewabilityConfig,
+    getItem, keyExtractor, count, horizontal,
+  };
+
+  const handleChange = useCallback((instance: Virtualizer<HTMLDivElement, Element>) => {
+    const props = propsRef.current;
+    const virtualItems = instance.getVirtualItems();
+    const scrollElement = instance.scrollElement;
+
+    // only measure once the tail is mounted; before that scrollHeight isn't final
+    if (props.onEndReached && props.count > 0 && scrollElement && virtualItems.length > 0) {
+      const last = virtualItems[virtualItems.length - 1];
+      if (last.index >= props.count - 1) {
+        const viewport = props.horizontal ? scrollElement.clientWidth : scrollElement.clientHeight;
+        const remaining = props.horizontal ? scrollElement.scrollWidth -scrollElement.scrollLeft -viewport : scrollElement.scrollHeight -scrollElement.scrollTop -viewport;
+        const thresholdPx = (props.onEndReachedThreshold ?? .5) * viewport;
+        if (remaining <= thresholdPx) {
+          if (!endReachedRef.current) {
+            endReachedRef.current = true;
+            props.onEndReached({ distanceFromEnd: remaining, });
+          }
+        } else endReachedRef.current = false;
+      } else endReachedRef.current = false;
+    }
+
+    if (props.onViewableItemsChanged && scrollElement && virtualItems.length > 0) {
+      const cfg = props.viewabilityConfig ?? {};
+      const offset = props.horizontal ? scrollElement.scrollLeft : scrollElement.scrollTop;
+      const viewport = props.horizontal ? scrollElement.clientWidth : scrollElement.clientHeight;
+      const viewStart = offset;
+      const viewEnd = offset + viewport;
+      const itemPercentMin = cfg.itemVisiblePercentThreshold ?? 45;
+      const areaPercentMin = cfg.viewAreaCoveragePercentThreshold;
+
+      const nowMap = new Map<string, ViewToken<T>>();
+      for (const virtualItem of virtualItems) {
+        const visibleLen = Math.max(0, Math.min(virtualItem.end, viewEnd) -Math.max(virtualItem.start, viewStart));
+        const itemLen = virtualItem.end -virtualItem.start;
+        if (itemLen <= 0) continue;
+        const itemPercent = (visibleLen /itemLen) *100;
+        const areaPercent = viewport > 0 ? (visibleLen /viewport) *100 : 0;
+        const isViewable = areaPercentMin != null ? areaPercent >= areaPercentMin : itemPercent >= itemPercentMin;
+        if (!isViewable) continue;
+        const item = props.getItem(props.data as D, virtualItem.index);
+        const key = props.keyExtractor ? props.keyExtractor(item, virtualItem.index) : String(virtualItem.index);
+        nowMap.set(key, {
+          item,
+          key,
+          index: virtualItem.index,
+          isViewable: true,
+        });
+      }
+
+      const prevMap = viewableRef.current;
+      const changed: ViewToken<T>[] = [];
+      for (const [key, value] of nowMap) if (!prevMap.has(key)) changed.push(value);
+      for (const [key, value] of prevMap) if (!nowMap.has(key)) changed.push({ ...value, isViewable: false });
+      viewableRef.current = nowMap;
+
+      if (changed.length > 0) props.onViewableItemsChanged({ viewableItems: [...nowMap.values()], changed });
+    }
+  }, []);
+
+  useEffect(() => {
+    endReachedRef.current = false;
+  }, [count]);
+
+  const virtualizer = useVirtualizer({
+    count,
+    getScrollElement: () => scrollRef.current?.getScrollableNode() ?? null,
+    estimateSize: index => getItemLayout ? getItemLayout(data, index).length : default_item_size,
+    getItemKey: index => keyExtractor
+      ? keyExtractor(getItem(data as D, index), index)
+      : String(index),
+    overscan: 6,
+    scrollMargin: headerHeight,
+    paddingEnd: footerHeight,
+    onChange: handleChange,
+  });
+
+  // ah, ok this might be beginning to click
+  useImperativeHandle(ref, () => ({
+    scrollTo: options => scrollRef.current?.scrollTo(options),
+    scrollToEnd: options => scrollRef.current?.scrollToEnd(options),
+    getScrollableNode: () => scrollRef.current?.getScrollableNode() ?? null,
+    scrollToIndex: ({
+      index,
+      animated = true,
+      viewPosition = 0,
+    }) => {
+      virtualizer.scrollToIndex(index, {
+        align: viewPosition === .5 ? 'center' : viewPosition === 1 ? 'end' : 'start',
+        behavior: animated ? 'smooth' : 'instant',
+      });
+    },
+    scrollToOffset: ({ offset, animated = true, }) => {
+      virtualizer.scrollToOffset(offset, { behavior: animated ? 'smooth' : 'auto' });
+    },
+  }), [virtualizer]);
+
+  const renderSlot = (slot: ListSlot) => {
+    if (!slot) return null;
+    return isValidElement(slot) ? slot : createElement(slot);
+  }
+
+  return (
+    <ScrollViewElement
+      horizontal={ horizontal }
+      scrollEnabled={ scrollEnabled }
+      showsScrollIndicator={ showsScrollIndicator }
+      onContentSizeChange={ onContentSizeChange }
+      onScroll={ onScroll }
+      id={ id }
+      theme={ theme }
+      style={ style }
+      a11y={ a11y }
+      testID={ testID }
+      ref={ scrollRef }
+      onLayout={ onLayout }
+    >
+      { ListHeaderComponent &&
+        <ViewElement
+          classes={ styles['virtualized-list__header'] }
+          ref={ headerRef }
+        >
+          { renderSlot(ListHeaderComponent) }
+        </ViewElement>
+      }
+      {
+        count === 0 ? (
+          ListEmptyComponent &&
+          <ViewElement classes={ styles['virtualized-list__empty'] }>
+            { renderSlot(ListEmptyComponent) }
+          </ViewElement>
+        )
+        :
+        <ViewElement
+          classes={ styles['virtualized-list__content'] }
+          style={{ height: virtualizer.getTotalSize() }}
+        >
+          { virtualizer.getVirtualItems().map(row => (
+            <div
+              key={ row.key }
+              data-index={ row.index }
+              ref={ getItemLayout ? undefined : virtualizer.measureElement }
+              className={ styles['virtualized-list__item'] }
+              style={{
+                height: getItemLayout ? row.size : undefined,
+                transform: `translateY(${row.start}px)`,
+              }}
+            >
+              {
+                renderItem({
+                  item: getItem(data as D, row.index),
+                  index: row.index,
+                })
+              }
+              { ItemSeparatorComponent && row.index < count -1 &&
+                createElement(ItemSeparatorComponent)
+              }
+            </div>
+          ))
+          }
+        </ViewElement>
+      }
+      { ListFooterComponent &&
+        <ViewElement
+          classes={ styles['virtualized-list__footer'] }
+          ref={ footerRef }
+        >
+          { renderSlot(ListFooterComponent) }
+        </ViewElement>
+      }
+    </ScrollViewElement>
+  );
+}
+// =====================================================================================
 
 
 // PARTITIONS: Slot =====================================================================

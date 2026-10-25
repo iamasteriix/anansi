@@ -33,6 +33,7 @@ export const Home = () => {
       <PageView.Toolbar
         alignment='bottom'
         theme={ theme.docker }
+        style={{ maxWidth: '45rem', }}
       >
         <TextField
           variant={ variants.textfield.searchbox }
