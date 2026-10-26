@@ -28,8 +28,7 @@ export const FlatList = <T,>({
   data, extraData, initialScrollIndex, windowSize, viewabilityConfig,
   onEndReachedThreshold, ListEmptyComponent, ListFooterComponent, ListHeaderComponent,
   ItemSeparatorComponent,
-  renderItem, keyExtractor, getItemLayout, onEndReached,
-  onViewableItemsChanged,
+  renderItem, keyExtractor, getItemLayout, onEndReached, onViewableItemsChanged,
   horizontal, scrollEnabled, showsScrollIndicator,
   onContentSizeChange, onScroll,
 }: FlatListProps<T>) => {
@@ -86,7 +85,7 @@ export const FlatList = <T,>({
 
   const handleViewable = useMemo(() => {
     if (!onViewableItemsChanged) return undefined;
-    const expand = (tokens: ViewToken<T[]>[]): ViewToken<T>[] =>
+    const pick = (tokens: ViewToken<T[]>[]): ViewToken<T>[] =>
       tokens.flatMap(token => token.item.map((item, i) => {
         const index = token.index == null ? null : token.index *columns +i;
         return {
@@ -100,8 +99,8 @@ export const FlatList = <T,>({
       viewableItems: ViewToken<T[]>[];
       changed: ViewToken<T[]>[];
     }) => onViewableItemsChanged({
-      viewableItems: expand(viewableItems),
-      changed: expand(changed),
+      viewableItems: pick(viewableItems),
+      changed: pick(changed),
     });
   }, [onViewableItemsChanged, keyExtractor, columns]);
 

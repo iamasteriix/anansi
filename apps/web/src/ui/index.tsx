@@ -15,6 +15,7 @@ export { PageView } from './page-view';
 export { Image } from './image';
 export { HoverView } from './hover-view';
 export { FlatList } from './flatlist';
+export { SectionList } from './section-list';
 
 
 import type { ButtonVariant } from './button';
