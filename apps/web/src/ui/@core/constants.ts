@@ -1,10 +1,16 @@
 import type {
+  BreakpointType, Breakpoints,
   TsElevation, TsIntent, TsRadius, TsShadow, TsStrokeColor, TsSurface,
   TsStrokeWeight, TsFontSize, TsTracking, TsFontWeight, TsTypeface, TsColor, TsSize,
 } from './types';
-import type { BreakpointType, Breakpoints } from './types';
 
 
+// UTILS ================================================================================
+export const is_dev = import.meta.env.DEV;
+// ======================================================================================
+
+
+// THEME: Resolver ======================================================================
 export const ts_size: Record<TsSize, string> = {
   'fixed-1': 'var(--size-fixed1)',
   'fixed-2': 'var(--size-fixed2)',
@@ -163,9 +169,10 @@ export const ts_color: Record<TsColor, string> = {
   warning: 'var(--colors-warning)',
   error: 'var(--colors-error)',
 };
-
-
 // ======================================================================================
+
+
+// THEME: Media queries =================================================================
 export const default_breakpoints: Breakpoints = {
   compact: 480,
   small: 640,
@@ -178,8 +185,8 @@ export const default_breakpoints: Breakpoints = {
 
 export const breakpoint_list: BreakpointType[] = ['cinema', 'compact', 'extended', 'large', 'small', 'regular', 'ultra'];
 
-export const is_dev = import.meta.env.DEV;
 
+// UI ===================================================================================
 /**
  * CSS selector list that matches every element a keyboard user can land on with the Tab
  * key. Note that this is a pragmatic approximation that can be ***supplemented*** with
@@ -198,3 +205,4 @@ export const focusable_selector = [
   '[contenteditable="true"]',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+// ======================================================================================

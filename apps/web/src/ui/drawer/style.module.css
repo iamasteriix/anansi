@@ -1,0 +1,78 @@
+.drawer {
+  --drawer-progress: 0;
+  --drawer-width: 270px;
+  --drawer-dir: 1;
+  --drawer-easing: cubic-bezier(
+    var(--motion-easingOutX1), var(--motion-easingOutY1),
+    var(--motion-easingOutX2), var(--motion-easingOutY2)
+  );
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.drawer--right { --drawer-dir: -1; flex-direction: row-reverse; }
+
+.drawer__main { position: relative; z-index: 1; flex: 1 1 auto; min-inline-size: 0; }
+.drawer__content { flex: 1 1 auto; min-block-size: 0; }
+.drawer__panel {
+  position: absolute;
+  inset-block: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  inline-size: var(--drawer-width);
+  background-color: var(--colors-bgSurface);
+}
+.drawer--left   .drawer__panel { left: 0; }
+.drawer--right  .drawer__panel { right: 0; }
+
+.drawer__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: var(--drawer-progress);
+  background-color: color-mix(
+    in srgb,
+    var(--colors-bgOverlay) calc(var(--optical-opacityMedium) * 100%),
+    transparent
+  );
+}
+.drawer--interactive .drawer__scrim { pointer-events: auto; }
+
+/* front + slide: panel travels in from its edge */
+.drawer--front .drawer__panel,
+.drawer--slide .drawer__panel {
+  transform: translateX(calc((1 - var(--drawer-progress)) * var(--drawer-dir) * -100%));
+}
+.drawer--front .drawer__panel { box-shadow: var(--elevation-shadowHigh); }
+
+/* back + slide: main content travels out of the way */
+.drawer--back .drawer__main,
+.drawer--slide .drawer__main {
+  transform: translateX(calc(var(--drawer-progress) * var(--drawer-dir) * var(--drawer-width)));
+}
+.drawer--back .drawer__panel { z-index: 0; }
+.drawer--back .drawer__main  { background-color: var(--colors-bgBase); }
+
+/* permanent: plain inline sidebar */
+.drawer--permanent .drawer__panel { position: relative; flex: none; transform: none; box-shadow: none; }
+.drawer--permanent .drawer__scrim { display: none; }
+
+/* transitions are off while dragging; the state machine adds this class when settling */
+.drawer--animating .drawer__panel,
+.drawer--animating .drawer__main,
+.drawer--animating .drawer__scrim {
+  transition-property: transform, opacity;
+  transition-duration: var(--motion-durationBase);
+  transition-timing-function: var(--drawer-easing);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer--animating .drawer__panel,
+  .drawer--animating .drawer__main,
+  .drawer--animating .drawer__scrim { transition-duration: 0ms; }
+}

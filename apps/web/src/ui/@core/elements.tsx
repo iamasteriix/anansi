@@ -13,6 +13,7 @@ import type {
   Align, Anchor, Rect, HoverListItemHookOptions, HoverListItemHookHandle,
   HoverElementContextValue, HoverListNavHookOptions, HoverScopeProviderProps,
   ScrollViewElementProps, ScrollViewHandle, VirtualizedListProps, ViewToken, ListSlot,
+  LayerBehaviorOptions,
 } from './types';
 import {
   Children, cloneElement, createContext, createElement, Fragment, isValidElement,
@@ -113,6 +114,100 @@ export const mergeRefs = <T extends Element>(...refs: Array<Ref<T> | undefined |
     }
   }
 );
+
+
+/**
+ * Runs `focusable_selector` against the panel (what panel?) to build the list the focus trap cycles through.
+ */
+const getFocusable = (root: HTMLElement): HTMLElement[] => {
+  return Array.from(root.querySelectorAll<HTMLElement>(focusable_selector))
+    .filter(element => (
+      !element.hasAttribute('inert') &&
+      element.getAttribute('aria-hidden') !== 'true' &&
+      (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0)
+    ));
+}
+
+
+const focusFirst = (root: HTMLElement) => {
+  const [first] = getFocusable(root);
+  if (first) return first.focus();
+  if (!root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1');  // fallback: make the panel itself focusable so the trap has an anchor
+  root.focus();
+}
+
+
+const trapTab = (
+  event: KeyboardEvent,
+  root: HTMLElement | null,
+) => {
+  if (!root) return;
+  const items = getFocusable(root);
+  if (items.length === 0) {
+    event.preventDefault();
+    root.focus();
+    return;
+  }
+  const first = items[0];
+  const last = items[items.length -1];
+  const active = document.activeElement;
+  const outside = !active || !root.contains(active);
+
+  if (event.shiftKey && (active === first || active === root || outside)) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (active === last || outside)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+
+/**
+ * Focus trap, Escape/outside-press dismissal, and focus restore. Keyed to `active` 
+ */
+export const useLayerBehavior = ({
+  active, panelRef, onDismiss,
+  dismissOnOutside = true,
+  dismissOnEscape = true,
+  trapFocus = true,
+  restoreFocus = true,
+}: LayerBehaviorOptions) => {
+
+  // latest callback in a ref so inline `onDismiss` doesn't resub listeners every render
+  const dismissRef = useRef(onDismiss);
+  dismissRef.current = onDismiss;
+
+  useEffect(() => {
+    if (!active) return;
+    const previousElement = document.activeElement as HTMLDivElement | null;
+    if (trapFocus && panelRef.current) focusFirst(panelRef.current);
+    return () => {
+      if (restoreFocus && previousElement?.isConnected) previousElement?.focus?.();
+    }
+  }, [active, trapFocus, restoreFocus, panelRef]);
+
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (dismissOnEscape && event.key === 'Escape') {
+        event.stopPropagation();
+        dismissRef.current?.();
+      }
+      if (trapFocus && event.key === 'Tab' && panelRef.current) trapTab(event, panelRef.current);
+    }
+    const onDown = (event: PointerEvent) => {
+      const panel = panelRef.current;
+      if (dismissOnOutside && panel && !panel.contains(event.target as Node)) dismissRef.current?.();
+    }
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDown, true);
+    }
+  }, [active, dismissOnEscape, dismissOnOutside, trapFocus, panelRef]);
+}
 // ======================================================================================
 
 
@@ -886,8 +981,7 @@ export const VirtualizedList = <T, D>({
 // =====================================================================================
 
 
-// PARTITIONS: Slot =====================================================================
-// src/ui/slot.tsx
+// SLOT =================================================================================
 const SlotScope = createContext<string | null>(null);
 export const SlotScopeProvider = SlotScope.Provider;
 
@@ -964,7 +1058,7 @@ export const createSlot = <
 // ======================================================================================
 
 
-// PARTITIONS: Group ====================================================================
+// GROUP ================================================================================
 export const slotProp = <T,>(
   element: ReactElement,
   key: string
@@ -1161,59 +1255,25 @@ export const LayerElement = ({
   
   const { container, nextZ, } = useLayer();
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const restoreRef = useRef<HTMLDivElement | null>(null);
-  const zRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (!open) return;
-    zRef.current = nextZ();
-    restoreRef.current = document.activeElement as HTMLDivElement | null;
-    if (trapFocus && panelRef.current) getFirstFocusableElement(panelRef.current);
-    return () => {
-      if (restoreFocus) restoreRef.current?.focus?.();
-    }
-  }, [open, nextZ, trapFocus, restoreFocus]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (dismissOnEscape && event.key === 'Escape') {
-        event.stopPropagation();
-        onDismiss?.();
-      }
-      if (trapFocus && event.key === 'Tab') trapWithTabKey(event, panelRef.current);
-    }
-    const onDown = (event: PointerEvent) => {
-      if (!dismissOnOutside) return;
-      if (panelRef.current && !(panelRef.current.contains(event.target as Node))) onDismiss?.();
-    }
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('pointerdown', onDown, true);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.removeEventListener('pointerdown', onDown, true);
-    }
-  }, [open, dismissOnEscape, dismissOnOutside, trapFocus, onDismiss]);
-
-  if (!open || !container) return null;
+  const active = open && !!container;
+  useLayerBehavior({
+    active, panelRef, onDismiss, dismissOnOutside,
+    dismissOnEscape, trapFocus, restoreFocus,
+  });
 
   const layerRef = useMemo(() => mergeRefs(panelRef, ref), [ref]);
+  const zIndex = useMemo(() => (active ? nextZ() : 0), [active, nextZ]);
 
-  // ooh, this panel
-  const panel = (
+  if (!active) return null;
+  return createPortal(
     <>
-      { modal &&
-        <div
-          className={ styles['layer-element__modal-scrim'] }
-          onPointerDown={ onDismiss }
-        />
-      }
+      { modal && <div className={ styles['layer-element__modal-scrim'] }/> }
       <ViewElement
         theme={ theme }
         style={{
           ...style,
           position: 'absolute',
-          zIndex: zRef.current,
+          zIndex,
           pointerEvents: 'auto',
         }}
         a11y={{
@@ -1226,59 +1286,9 @@ export const LayerElement = ({
       >
         { children }
       </ViewElement>
-    </>
+    </>,
+    container
   );
-  return createPortal(panel, container);
-}
-
-
-/**
- * Runs `focusable_selector` against the panel (what panel?) to build the list the focus
- * trap cycles through.
- */
-const getFocusable = (root: HTMLElement): HTMLElement[] => {
-  return Array.from(root.querySelectorAll<HTMLElement>(focusable_selector))
-    .filter(element => (
-      !element.hasAttribute('inert') &&
-      element.getAttribute('aria-hidden') !== 'true' &&
-      (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0)
-    ));
-}
-
-
-const getFirstFocusableElement = (root: HTMLElement) => {
-  const [first] = getFocusable(root);
-  if (first) return first.focus();
-  if (!root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1');  // fallback: make the panel itself focusable so the trap has an anchor
-  root.focus();
-}
-
-const trapWithTabKey = (
-  event: KeyboardEvent,
-  root: HTMLElement | null,
-) => {
-  if (!root) return;
-  const items = getFocusable(root);
-  if (items.length === 0) {
-    event.preventDefault();
-    root.focus();
-    return;
-  }
-  const first = items[0];
-  const last = items[items.length -1];
-  const active = document.activeElement;
-  const outside = !active || !root.contains(active);
-
-  if (
-    event.shiftKey &&
-    (active === first || active === root || outside)
-  ) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && (active === last || outside)) {
-    event.preventDefault();
-    first.focus();
-  }
 }
 // ======================================================================================
 

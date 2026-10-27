@@ -1,6 +1,7 @@
 export type {
   ThemeTokensType, TSProperties, TsElevation, TsColor, TsTypeface, TsFill, TsIntent,
   TsRadius, TsSurface, TsJustify, TsShadow, TsAlign, TsSize, TsPosition, TsGlass,
+  ResponsiveProp,
   VariantNamespaces,
   StorageAdapter, StorageTopics,
   ElementChildren, ElementProps, ViewElementProps, PressElementProps, LayoutEvent,
@@ -14,17 +15,19 @@ export type {
 
 export { resolveA11y } from './a11y';
 export { storageAdapter, } from './storage';
-export { tokens, } from './tokens';
-export { resolveThemeSheet, ThemeSheet, useMediaQuery, useTheme, } from './theme';
+export {
+  resolveThemeSheet, resolveBreakpoint, ThemeSheet, useMediaQuery, useTheme,
+} from './theme';
+export { tokens } from './tokens';
 export {
   ThemeProvider, SlotScopeProvider, GroupItemProvider, LayerProvider,
   HoverScopeProvider,
   ViewElement, PressElement, TextInputElement, HoverElement, ScrollViewElement,
   VirtualizedList,
   useSlots, createSlot, slotProp, createGroup, useGroupItem, useHoverListItem,
-  useHoverListNavigation, useLayer,
+  useHoverListNavigation, useLayer, useLayerBehavior,
   resolveGlassStyle, mergeRefs, flattenChildren,
-} from './ui';
+} from './elements';
 
 import styles from './style.module.css';
 export { styles };

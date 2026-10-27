@@ -1,6 +1,5 @@
 import type {
-  ComponentType,
-  CSSProperties, KeyboardEvent, ReactElement, ReactNode, Ref,
+  ComponentType, CSSProperties, KeyboardEvent, ReactElement, ReactNode, Ref, RefObject,
 } from 'react';
 import { tokens } from './tokens';
 
@@ -373,6 +372,16 @@ export type LayerContextValue = {
   container: HTMLElement | null;
   nextZ: () => number;
   release: (z: number) => void;
+};
+
+export type LayerBehaviorOptions = {
+  active: boolean;
+  panelRef: RefObject<HTMLElement | null>;
+  onDismiss?: () => void;
+  dismissOnOutside?: boolean;
+  dismissOnEscape?: boolean;
+  trapFocus?: boolean;
+  restoreFocus?: boolean;
 };
 
 export type LayerElementProps = ViewElementProps & {
