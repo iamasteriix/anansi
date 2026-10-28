@@ -24,7 +24,7 @@ import { createPortal } from 'react-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ThemeContext, toCSSVariables, useMediaQuery } from './theme';
 import { resolveA11y } from './a11y';
-import { storageAdapter } from './storage';
+import { storageAdapter } from './utilities';
 import { tokens } from './tokens';
 import { focusable_selector, is_dev } from './constants';
 import styles from './style.module.css';
@@ -1244,6 +1244,7 @@ export const useLayer = (): LayerContextValue => {
 
 export const LayerElement = ({
   children, id, theme, style, a11y, testID, ref,
+  onLayout,
   open,
   onDismiss,
   dismissOnOutside = true,
@@ -1283,6 +1284,7 @@ export const LayerElement = ({
         id={ id }
         testID={ testID }
         ref={ layerRef }
+        onLayout={ onLayout }
       >
         { children }
       </ViewElement>

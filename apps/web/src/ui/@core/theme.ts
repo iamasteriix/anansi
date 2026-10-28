@@ -223,7 +223,7 @@ const mergeTheme = (
 
 
 export const ThemeSheet = {
-  create: <T extends Record<string, TSProperties>> (styles: T): T => styles,
+  create: <T extends Record<string, TSProperties>>(styles: T): Readonly<T> => styles,
   
   variants: new Proxy(
     {} as {

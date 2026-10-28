@@ -14,7 +14,7 @@ export type {
 } from './types';
 
 export { resolveA11y } from './a11y';
-export { storageAdapter, } from './storage';
+export { storageAdapter, StyleSheet, } from './utilities';
 export {
   resolveThemeSheet, resolveBreakpoint, ThemeSheet, useMediaQuery, useTheme,
 } from './theme';

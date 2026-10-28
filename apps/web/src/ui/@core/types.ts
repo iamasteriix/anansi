@@ -78,36 +78,36 @@ export type TSProperties = {
   flexWrap?: ResponsiveProp<TsWrap>;
   flexGrow?: ResponsiveProp<0 | 1>;
   flexShrink?: ResponsiveProp<0 | 1>;
-  flexBasis?: ResponsiveProp<TsSize | 'auto'>;
-  width?: ResponsiveProp<TsSize | 'auto'>;
-  minWidth?: ResponsiveProp<TsSize | 'auto'>;
-  maxWidth?: ResponsiveProp<TsSize | 'auto'>;
-  height?: ResponsiveProp<TsSize | 'auto'>;
-  minHeight?: ResponsiveProp<TsSize | 'auto'>;
-  maxHeight?: ResponsiveProp<TsSize | 'auto'>;
-  margin?: ResponsiveProp<TsSize | 'auto'>;
-  marginVertical?: ResponsiveProp<TsSize | 'auto'>;
-  marginHorizontal?: ResponsiveProp<TsSize | 'auto'>;
-  marginTop?: ResponsiveProp<TsSize | 'auto'>;
-  marginRight?: ResponsiveProp<TsSize | 'auto'>;
-  marginBottom?: ResponsiveProp<TsSize | 'auto'>;
-  marginLeft?: ResponsiveProp<TsSize | 'auto'>;
-  padding?: ResponsiveProp<TsSize | 'auto'>;
-  paddingVertical?: ResponsiveProp<TsSize | 'auto'>;
-  paddingHorizontal?: ResponsiveProp<TsSize | 'auto'>;
-  paddingTop?: ResponsiveProp<TsSize | 'auto'>;
-  paddingRight?: ResponsiveProp<TsSize | 'auto'>;
-  paddingBottom?: ResponsiveProp<TsSize | 'auto'>;
-  paddingLeft?: ResponsiveProp<TsSize | 'auto'>;
-  top?: ResponsiveProp<TsSize | 'auto'>;
-  right?: ResponsiveProp<TsSize | 'auto'>;
-  bottom?: ResponsiveProp<TsSize | 'auto'>;
-  left?: ResponsiveProp<TsSize | 'auto'>;
-  insetInlineStart?: ResponsiveProp<TsSize | 'auto'>;
-  insetInlineEnd?: ResponsiveProp<TsSize | 'auto'>;
-  gap?: ResponsiveProp<TsSize | 'auto'>;
-  columnGap?: ResponsiveProp<TsSize | 'auto'>;
-  rowGap?: ResponsiveProp<TsSize | 'auto'>;
+  flexBasis?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  width?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  minWidth?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  maxWidth?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  height?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  minHeight?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  maxHeight?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  margin?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  marginVertical?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  marginHorizontal?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  marginTop?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  marginRight?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  marginBottom?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  marginLeft?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  padding?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  paddingVertical?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  paddingHorizontal?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  paddingTop?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  paddingRight?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  paddingBottom?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  paddingLeft?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  top?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  right?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  bottom?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  left?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  insetInlineStart?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  insetInlineEnd?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  gap?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  columnGap?: ResponsiveProp<TsSize | 'auto' | '0px'>;
+  rowGap?: ResponsiveProp<TsSize | 'auto' | '0px'>;
   backgroundColor?: TsSurface | TsIntent;
   boxShadow?: TsShadow;
   borderWidth?: ResponsiveProp<TsStrokeWeight>;
@@ -136,7 +136,7 @@ export interface VariantNamespaces {};
 // ======================================================================================
 
 
-// THEME: Context =======================================================================
+// THEME: API ===========================================================================
 export type ThemesType = Record<string, ThemeTokensType>;
 
 export type ThemeProviderProps = {
@@ -249,6 +249,17 @@ export type ContentSizeEventPayload = { contentSize: ContentSize };
 export type KeyEventPayload = { key: string };
 export type ScrollEventPayload = { contentOffset: ViewportCoords; };
 export type SelectionEventPayload = { selection: { start: number; end: number; }};
+
+type Falsy = false | null | undefined;
+export type StyleProp<T> = T | Falsy | ReadonlyArray<StyleProp<T>>;
+
+export type AbsoluteFillStyle = Readonly<{
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+}>;
 // ======================================================================================
 
 
