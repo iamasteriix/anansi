@@ -50,6 +50,7 @@ const resolveVariants = (variant: ButtonVariant | undefined): string => {
   const base = [
     styles.button,
     styles[`button--foreground-${variant?.foreground || 'primary'}`],
+    variant?.fit && styles[`button--fit-${variant.fit}`],
     variant?.elevation && styles[`button--elevation-${variant.elevation}`],
     variant?.shadow === 'auto' && variant?.elevation ? styles[`button--shadow-${variant?.elevation}`] : undefined,
     styles[`button--size-${variant?.size ?? 'md'}`],

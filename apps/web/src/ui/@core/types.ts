@@ -33,7 +33,7 @@ export type ThemeTokensType = {
 // THEME: Styles ========================================================================
 export type TsDisplay = 'flex' | 'none';
 export type TsFlex = 'auto' | 'none';
-export type TsAlign = 'start' | 'end' | 'center' | 'stretch';
+export type TsAlign = 'start' | 'end' | 'center';
 export type TsJustify = 'start' | 'end' | 'center' | 'space-between' | 'space-around' | 'stretch';
 export type TsDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
 export type TsWrap = 'wrap' | 'nowrap' | 'wrap-reverse';
@@ -121,6 +121,7 @@ export type TSProperties = {
   fontSize?: ResponsiveProp<TsFontSize>;
   color?: TsColor;
   fontWeight?: ResponsiveProp<TsFontWeight>;
+  textAlign?: ResponsiveProp<TsAlign>;
   lineHeight?: ResponsiveProp<TsTracking>;
   letterSpacing?: ResponsiveProp<TsTracking>;
 };

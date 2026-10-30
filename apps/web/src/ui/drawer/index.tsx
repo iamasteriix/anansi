@@ -1,12 +1,14 @@
 import type { CSSProperties, RefObject, TransitionEvent } from 'react';
-import type { ResponsiveProp, TsSize, ViewElementProps } from '../@core';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { ResponsiveProp, ViewElementProps } from '../@core';
+import {
+  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
+} from 'react';
 import { useDrag } from '@use-gesture/react';
 import {
   createSlot, mergeRefs, resolveBreakpoint, SlotScopeProvider, useLayerBehavior,
   useMediaQuery, useSlots, ViewElement,
 } from '../@core';
-import { styles } from '../@core';
+import styles from './style.module.css';
 
 
 // Types ————————————————————————————————————————————————————————————————————————————————
@@ -14,15 +16,9 @@ type DrawerType = 'front' | 'back' | 'slide' | 'permanent';
 type DrawerPosition = 'left' | 'right';
 type DrawerPhase = 'open' | 'opening' | 'closed' | 'closing';
 
-type DrawerProps = ViewElementProps & {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  drawerType?: ResponsiveProp<DrawerType>;
-  drawerPosition?: DrawerPosition;
-  drawerWidth?: ResponsiveProp<TsSize> | number;
-  swipeEnabled?: boolean;
-  swipeEdgeWidth?: number;
-  swipeMinDistance?: number;
+type DrawerGestureConfig = {
+  activeOffsetX?: [number, number];
+  failOffsetY?: [number, number];
 };
 
 type DrawerGestureOptions = {
@@ -31,12 +27,31 @@ type DrawerGestureOptions = {
   position: DrawerPosition;
   edgeWidth: number;
   minDistance: number;
+  minVelocity: number;
+  gestureConfig: DrawerGestureConfig;
   rootRef: RefObject<HTMLElement | null>;
   panelRef: RefObject<HTMLElement | null>;
+  panelWidthRef: RefObject<number>;
   startDrag: () => void;
   endDrag: (target: boolean) => void;
   setProgress: (progress: number) => void;
-  onOpenChange: (open: boolean) => void;
+  onOpen: () => void;
+  onClose: () => void;
+};
+
+type DrawerProps = ViewElementProps & {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  drawerType?: ResponsiveProp<DrawerType>;
+  drawerPosition?: DrawerPosition;
+  drawerWidth?: number;
+  overlayStyle?: CSSProperties;
+  swipeEnabled?: boolean;
+  swipeEdgeWidth?: number;
+  swipeMinDistance?: number;
+  swipeMinVelocity?: number;
+  configureGestureHandler?: (defaults: DrawerGestureConfig) => DrawerGestureConfig;
 };
 
 
@@ -45,14 +60,14 @@ const resolveStyle = ({
   type, drawerPosition, interactive, isPermanent,
   animating, style, progress, drawerWidth,
 }: {
-  type?: DrawerType;
-  drawerPosition?: DrawerPosition;
-  interactive?: boolean;
-  isPermanent?: boolean;
+  type: DrawerType;
+  drawerPosition: DrawerPosition;
+  interactive: boolean;
+  isPermanent: boolean;
   animating: boolean;
   style?: CSSProperties;
-  progress?: number;
-  drawerWidth?: ResponsiveProp<TsSize> | number;
+  progress: number;
+  drawerWidth?: number;
 }) => {
   const classes = [
     styles.drawer,
@@ -64,7 +79,7 @@ const resolveStyle = ({
 
   const cssVars = {
     ...style,
-    ...(typeof drawerWidth === 'number' ? { '--drawer-width': `${drawerWidth}px` } : {}),
+    '--drawer-width': `${drawerWidth ?? 0}px`,
     '--drawer-progress': isPermanent ? 1 : progress,
   } as CSSProperties;
 
@@ -79,18 +94,20 @@ const settle_fallback_ms = 540; // covers reduced motion/zero-duration where 'tr
 const useDrawerPhase = (open: boolean) => {
   const [phase, setPhase] = useState<DrawerPhase>(open ? 'open' : 'closed');
   const [progress, setProgress] = useState(open ? 1 : 0);
+  const [dragging, setDragging] = useState(false);
 
-  // mount at 0 first, then move to 1 on second frame so browser has a start value
+  // mount at 0 first, then move to 1 on second frame so browser has a start value (??)
   useEffect(() => {
+    setDragging(false); // cancel any in-flight drag if `open` flipped externally
     if (open) {
       setPhase(currentPhase => currentPhase === 'open' ? currentPhase : 'opening');
-      let secondFrameProgress = 0;
-      const firstFrameProgress = requestAnimationFrame(() => {
-        secondFrameProgress = requestAnimationFrame(() => setProgress(1));
+      let secondFrame = 0;
+      const firstFrame = requestAnimationFrame(() => {
+        secondFrame = requestAnimationFrame(() => setProgress(1));
       });
       return () => {
-        cancelAnimationFrame(firstFrameProgress);
-        cancelAnimationFrame(secondFrameProgress);
+        cancelAnimationFrame(firstFrame);
+        if (secondFrame) cancelAnimationFrame(secondFrame);
       }
     }
     setPhase(currentPhase => currentPhase === 'closed' ? currentPhase : 'closing'); // reverse transition when `open` flipped mid-flight
@@ -98,7 +115,7 @@ const useDrawerPhase = (open: boolean) => {
   }, [open]);
 
   const settle = useCallback(() => {
-    return setPhase(currentPhase => (
+    setPhase(currentPhase => (
       currentPhase === 'opening' && progress === 1 ? 'open' :
       currentPhase === 'closing' && progress === 0 ? 'closed' :
       currentPhase
@@ -107,13 +124,13 @@ const useDrawerPhase = (open: boolean) => {
 
   useEffect(() => {
     if (phase !== 'opening' && phase !== 'closing') return;
+    if (dragging) return; // never settle mid-drag
     const timer = setTimeout(settle, settle_fallback_ms);
     return () => {
       clearTimeout(timer);
     }
-  }, [phase, settle]);
+  }, [phase, dragging, settle]);
 
-  const [dragging, setDragging] = useState(false);
 
   const startDrag = useCallback(() => {
     setDragging(true);
@@ -127,7 +144,7 @@ const useDrawerPhase = (open: boolean) => {
   }, []);
 
   // attach to the panel only, ignore transitions bubbling up from its children
-  const onTranstitionEnd = useCallback((event: TransitionEvent<HTMLElement>) => {
+  const handleTranstitionEnd = useCallback((event: TransitionEvent<HTMLElement>) => {
     if (event.target === event.currentTarget) settle();
   }, [settle]);
 
@@ -135,8 +152,8 @@ const useDrawerPhase = (open: boolean) => {
     phase,
     progress,
     setProgress,
-    onTranstitionEnd,
-    mounted: phase !== 'closed',  // keeps panel in DOM while it animated out
+    onTranstitionEnd: handleTranstitionEnd,
+    mounted: phase !== 'closed',  // keeps panel in DOM while it animates out
     interactive: phase === 'opening' || phase === 'open', // focus trapping and dismissal end when closing starts
     animating: (phase === 'opening' || phase === 'closing') && !dragging,
     dragging,
@@ -147,28 +164,42 @@ const useDrawerPhase = (open: boolean) => {
 
 
 export const useDrawerGesture = ({
-  open, enabled, position, edgeWidth, rootRef, panelRef, minDistance,
-  onOpenChange, startDrag, setProgress, endDrag,
+  open, enabled, position, edgeWidth, minDistance, minVelocity, gestureConfig, rootRef,
+  panelRef, panelWidthRef,
+  onOpen, onClose, startDrag, setProgress, endDrag,
 }: DrawerGestureOptions) => {
   const suppressClick = useRef(false);
   const active = useRef(false);
   const direction = position === 'left' ? 1 : -1;
+
   const progressAt = (movementX: number) => {
-    const width = panelRef.current?.offsetWidth || 270; // panel not yet mounted on first frame
+    const width = panelWidthRef.current || panelRef.current?.offsetWidth || 270; // panel not yet mounted on first frame
     const value = (open ? 1 : 0) +(movementX *direction) /width;
     return Math.min(1, Math.max(0, value));
   }
+  const threshold = gestureConfig.activeOffsetX
+    ? Math.min(Math.abs(gestureConfig.activeOffsetX[0]), Math.abs(gestureConfig.activeOffsetX[1]))
+    : minDistance;
 
   useDrag(({
-    first, last, tap, cancel, event,
+    first, last, tap, event, cancel,
     xy: [x],
-    movement: [movementX],
+    movement: [movementX, movementY],
     direction: [directionX],
     velocity: [velocityX],
   }) => {
     if (tap) return;
+
+    // some shit about gating activation and committing on drag
+    if (!active.current && gestureConfig.failOffsetY) {
+      const foo = gestureConfig.failOffsetY;
+      if (movementY < foo[0] || movementY > foo[1]) return cancel();
+    }
+
     if (first) {
-      const rect = rootRef.current!.getBoundingClientRect();  // do we know for a fact that `rect` exists?
+      const root = rootRef.current;
+      if (!root) return cancel();
+      const rect = root.getBoundingClientRect();
       const startX = x -movementX;  // threshold means `xy` has already moved past the start
       const fromEdge = position === 'left' ? startX -rect.left : rect.right -startX;
       const opening = movementX *direction > 0;
@@ -181,19 +212,20 @@ export const useDrawerGesture = ({
     if (!last) return setProgress(progressAt(movementX));
 
     active.current = false;
-    const target = velocityX > .5 ? directionX *direction > 0 : progressAt(movementX) > .5;
+    const target = velocityX > minVelocity ? directionX *direction > 0 : progressAt(movementX) > .5;
     suppressClick.current = true; // click after 'pointerup' mustn't hit the scrim
     setTimeout(() => {
       suppressClick.current = false;
-    });
+    }, 0);
     endDrag(target);
-    if (target !== open) onOpenChange(target);
+    if (target && !open) onOpen();
+    else if (!target && open) onClose();
   }, {
     target: rootRef,
     enabled,
     axis: 'x',
     filterTaps: true,
-    threshold: minDistance,
+    threshold,
     eventOptions: { passive: false, },
   });
 
@@ -204,45 +236,86 @@ export const useDrawerGesture = ({
 export const Drawer = ({
   children, id, theme, style, a11y, testID, ref,
   onLayout,
-  open, drawerWidth,
-  onOpenChange,
+  open, drawerWidth, overlayStyle,
+  onOpen, onClose, configureGestureHandler,
   drawerType = 'front',
   drawerPosition = 'left',
   swipeEnabled = true,
   swipeEdgeWidth = 27,
   swipeMinDistance = 9,
+  swipeMinVelocity = .5,
 }: DrawerProps) => {
 
   const { breakpoint, } = useMediaQuery();
   const type = resolveBreakpoint(drawerType, breakpoint) ?? 'front';
   const isPermanent = type === 'permanent';
 
-  const {
-    interactive, animating, progress, mounted, onTranstitionEnd,
-    startDrag, endDrag, setProgress,
+    const {
+    phase, interactive, animating, progress, mounted,
+    onTranstitionEnd, startDrag, endDrag, setProgress,
   } = useDrawerPhase(open);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const handleDismiss = useCallback(() => onOpenChange(false), [onOpenChange]);
+  const panelWidthRef = useRef(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null); // main content inert while drawer is modal
   const elementRef = useMemo(() => mergeRefs(rootRef, ref), [ref]);
 
+  // track panel width so drag math doesn't thrash layout on every frame
+  useLayoutEffect(() => {
+    const element = panelRef.current;
+    if (!element) return;
+    const measure = () => {
+      panelWidthRef.current = element.offsetWidth;
+    }
+    measure();
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(element);
+    return () => {
+      resizeObserver.disconnect();
+    }
+  }, [mounted]);
+
+  const gestureConfig = useMemo<DrawerGestureConfig>(() => {
+    const defaults: DrawerGestureConfig = {
+      activeOffsetX: [-swipeMinDistance, swipeMinDistance],
+    };
+    return configureGestureHandler?.(defaults) ?? defaults;
+  }, [swipeMinDistance, configureGestureHandler]);
+
   const { suppressClick, } = useDrawerGesture({
-    open, rootRef, panelRef, startDrag, endDrag, setProgress, onOpenChange,
+    open, rootRef, panelRef, panelWidthRef, gestureConfig,
+    startDrag, endDrag, setProgress, onOpen, onClose,
     enabled: swipeEnabled && !isPermanent,
     position: drawerPosition,
     edgeWidth: swipeEdgeWidth,
     minDistance: swipeMinDistance,
+    minVelocity: swipeMinVelocity,
   });
+
+  // capture on activation, restore only when panel is fully gone
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+  const wasInteractive = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!interactive || isPermanent || wasInteractive.current) return;
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+    wasInteractive.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (phase !== 'closed' || !wasInteractive.current) return;
+    previouslyFocused.current?.focus?.();
+    previouslyFocused.current = null;
+    wasInteractive.current = false;
+  }, [phase]);
   
   useLayerBehavior({
     active: interactive && !isPermanent,
     panelRef,
-    onDismiss: handleDismiss,
-    dismissOnOutside: false,  // avoid scrim click and drag conflict
+    onDismiss: onClose,
+    dismissOnOutside: false,  // scrim handles dismissal, drag would double-fire
+    restoreFocus: false,  // handled after slide-out (above)
   });
-
-  // main content inert while drawer is modal
-  const contentRef = useRef<HTMLDivElement | null>(null);
 
   // `useLayoutEffect` because focus restore in `useLayerBehavior` runs in a passive
   // cleanup, and `focus()` fails on inert elements
@@ -251,10 +324,10 @@ export const Drawer = ({
   }, [interactive, isPermanent]);
 
   const handleClickScrim = () => {
-    if (!suppressClick.current) handleDismiss();
+    if (!suppressClick.current) onClose();
   }
 
-  const slots = useSlots(children, ['Content']);
+  const slots = useSlots(children, ['slot']);
 
   const { classes, cssVars, } = resolveStyle({
     type, drawerPosition, interactive, isPermanent, animating,
@@ -264,12 +337,8 @@ export const Drawer = ({
   return (
     <ViewElement
       classes={ classes }
-      theme={{
-        ...(typeof drawerWidth !== 'number' ? { width: drawerWidth } : {}),
-        ...theme,
-      }}
+      theme={ theme }
       style={ cssVars }
-      a11y={ a11y }
       id={ id }
       testID={ testID }
       ref={ elementRef }
@@ -278,10 +347,11 @@ export const Drawer = ({
       { (isPermanent || mounted) &&
         <ViewElement
           classes={ styles['drawer__panel'] }
+          a11y={{ role: 'dialog', ...a11y, }}
           ref={ panelRef }
         >
           <SlotScopeProvider value='Drawer'>
-              { slots.Content }
+            { slots.slot }
           </SlotScopeProvider>
         </ViewElement>
       }
@@ -295,6 +365,7 @@ export const Drawer = ({
         { !isPermanent &&
           <div
             className={ styles['drawer__scrim'] }
+            style={ overlayStyle }
             onClick={ handleClickScrim }
             onTransitionEnd={ onTranstitionEnd }
           />
@@ -307,6 +378,6 @@ export const Drawer = ({
 
 // Slots ————————————————————————————————————————————————————————————————————————————————
 Drawer.Content = createSlot(ViewElement, {
-  slotName: 'Content',
+  slotName: 'slot',
   parentName: 'Drawer',
 });

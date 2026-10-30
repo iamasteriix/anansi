@@ -1,9 +1,16 @@
-import { Button, Image, PageView, TextField, ThemeSheet, View, } from '@/ui';
+import { Button, Image, PageView, TextField, View, } from '@/ui';
 import { Ellipsis, Menu, Plus, Search } from '@/ui/@icons';
+import { ThemeSheet } from '@/ui/@core';
+import { IllustratedMessageCard } from '@/components';
 import images from '@/assets/images';
 
 
-export const Home = () => {
+type PageProps = {
+  openDrawer?: () => void;
+};
+
+
+export const Home = ({ openDrawer }: PageProps) => {
   return (
     <PageView theme={ theme.container }>
 
@@ -12,7 +19,10 @@ export const Home = () => {
         theme={ theme.header }
       >
         <PageView.Toolbar.Slot alignment='start'>
-          <Button variant={ variants.button.header }>
+          <Button
+            onPress={ openDrawer }
+            variant={ variants.button.header }
+          >
             <Button.Icon icon={ Menu }/>
           </Button>
         </PageView.Toolbar.Slot>
@@ -28,7 +38,9 @@ export const Home = () => {
         </PageView.Toolbar.Slot>
       </PageView.Toolbar>
 
-      <View theme={ theme.content }></View>
+      <View theme={ theme.content }>
+        <IllustratedMessageCard/>
+      </View>
 
       <PageView.Toolbar
         alignment='bottom'
@@ -64,7 +76,10 @@ const theme = ThemeSheet.create({
     paddingVertical: 'relative-2',
     gap: 'relative-2',
   },
-  content: { flex: 'auto', },
+  content: {
+    flex: 'auto',
+    alignItems: 'center',
+  },
   logo: {
     width: 'relative-6',
     height: 'relative-6',

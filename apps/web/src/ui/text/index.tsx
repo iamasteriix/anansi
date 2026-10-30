@@ -39,9 +39,7 @@ export const resolveVariants = (variant: TextVariant | undefined): string => {
     variant?.role ? styles[`text--role-${variant.role}`] : styles['text--role-body'],
     variant?.typeface && styles[`text--typeface-${variant.typeface}`],
     variant?.color && styles[`text--color-${variant.color}`],
-  ]
-    .filter(Boolean)
-    .join(' ');
+  ].filter(Boolean).join(' ');
 };
 
 export const resolveClampStyle = (lines?: number): CSSProperties => {

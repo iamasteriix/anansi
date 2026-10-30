@@ -79,7 +79,7 @@ const textKeys = new Set([
 const passthroughKeys = new Set([
   'display', 'alignSelf', 'alignItems', 'justifySelf', 'justifyContent',
   'flex', 'flexDirection', 'flexWrap', 'flexGrow', 'flexShrink',
-  'order', 'overflow', 'position',
+  'order', 'overflow', 'position', 'insetInlineStart', 'insetInlineEnd', 'textAlign',
 ]);
 
 
